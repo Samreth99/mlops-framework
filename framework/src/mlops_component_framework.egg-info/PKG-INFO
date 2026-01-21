@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: mlops-component-framework
+Version: 0.2.0
+Summary: Component-oriented FastAPI skeleton (refactored)
+Requires-Python: >=3.10
