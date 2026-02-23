@@ -25,4 +25,6 @@ def make_log(*, area: str, component: str, endpoint: str, meta: Optional[Dict[st
         message=f"Entered component '{component}' in area '{area}'.",
         meta=meta or {},
     )
-    return asdict(log)
+    result = asdict(log)
+    print(f"[LOG] [{area}] {component} | endpoint={endpoint} | trace={result['trace_id']} | meta={result['meta']}")
+    return result
