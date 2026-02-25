@@ -23,6 +23,10 @@ def root():
         "hint": "Open /docs or run `python main.py` to call every component endpoint.",
     }
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 app.include_router(plan_router, prefix="/plan", tags=["plan"])
 app.include_router(data_router, prefix="/data", tags=["data"])
 app.include_router(ops_router, prefix="/ops", tags=["ops"])
