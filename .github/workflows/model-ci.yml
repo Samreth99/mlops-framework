@@ -1,10 +1,12 @@
 name: Model Dimension CI (model-suite)
 
 on:
-  repository_dispatch:
-    types: [run-model-tests]
+  # Push trigger registers this workflow with GitHub Actions on ks-software
+  push:
+    branches: [ks-software]
+    paths: ['.github/workflows/model-ci.yml']
 
-  # Manual trigger — branch enforced by the job-level if guard below
+  # Manual/API trigger
   workflow_dispatch:
     inputs:
       testRunId:
@@ -26,10 +28,9 @@ jobs:
     if: github.ref == 'refs/heads/ks-software'
 
     env:
-      # Use dispatch payload or manual input
-      TEST_RUN_ID: ${{ github.event.client_payload.testRunId   || inputs.testRunId }}
-      CALLBACK_URL: ${{ github.event.client_payload.callbackUrl || inputs.callbackUrl }}
-      API_BASE_URL: ${{ github.event.client_payload.apiBaseUrl  || inputs.apiBaseUrl }}
+      TEST_RUN_ID: ${{ inputs.testRunId }}
+      CALLBACK_URL: ${{ inputs.callbackUrl }}
+      API_BASE_URL: ${{ inputs.apiBaseUrl }}
       ACCURACY_THRESHOLD: "0.80"
 
     steps:
