@@ -26,11 +26,11 @@ from .. import software_service as svc
 
 
 # ─────────────────────────────────────────────
-# testSuiteRef → GitHub Actions event_type map
+# testSuiteRef → workflow filename map
 # Add new suites here as you create them
 # ─────────────────────────────────────────────
-SUITE_TO_EVENT = {
-    "tests/model-suite.yaml": "run-model-tests",
+SUITE_TO_WORKFLOW = {
+    "tests/model-suite.yaml": "model-ci.yml",
 }
 
 
@@ -43,17 +43,17 @@ class CICallbackRequest(BaseModel):
 
 def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
     """
-    Auto-trigger GitHub Actions via repository_dispatch.
+    Auto-trigger GitHub Actions via workflow_dispatch on ks-software branch.
     Runs as a background task — does not block the API response.
     Marks the test run as FAILED if GitHub is not configured or dispatch fails.
     """
-    event_type = SUITE_TO_EVENT.get(test_suite_ref)
-    token      = settings.github_token
-    owner      = settings.github_repo_owner
-    repo       = settings.github_repo_name
-    public_url = settings.public_api_url
+    workflow_file = SUITE_TO_WORKFLOW.get(test_suite_ref)
+    token         = settings.github_token
+    owner         = settings.github_repo_owner
+    repo          = settings.github_repo_name
+    public_url    = settings.public_api_url
 
-    if not all([event_type, token, owner, repo, public_url]):
+    if not all([workflow_file, token, owner, repo, public_url]):
         svc.update_test_run(test_run_id, status="FAILED", passed=False)
         return
 
@@ -61,15 +61,14 @@ def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
 
     try:
         resp = httpx.post(
-            f"https://api.github.com/repos/{owner}/{repo}/dispatches",
+            f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_file}/dispatches",
             headers={
                 "Authorization": f"Bearer {token}",
                 "Accept":        "application/vnd.github.v3+json",
             },
             json={
-                "event_type": event_type,
-                "ref":        "ks-software",
-                "client_payload": {
+                "ref": "ks-software",
+                "inputs": {
                     "testRunId":   test_run_id,
                     "callbackUrl": callback_url,
                     "apiBaseUrl":  public_url,
