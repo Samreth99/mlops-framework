@@ -10,10 +10,13 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+import httpx
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel
 
 from ....core.logs import make_log
+from ....config.settings import settings
 from ..schemas import (
     TestTriggerRequest,
     TestRunResponse,
@@ -22,11 +25,65 @@ from ..schemas import (
 from .. import software_service as svc
 
 
+# ─────────────────────────────────────────────
+# testSuiteRef → GitHub Actions event_type map
+# Add new suites here as you create them
+# ─────────────────────────────────────────────
+SUITE_TO_EVENT = {
+    "tests/model-suite.yaml": "run-model-tests",
+}
+
+
 class CICallbackRequest(BaseModel):
     status: str
     passed: Optional[bool] = None
     reportRef: Optional[str] = None
     coverageRef: Optional[str] = None
+
+
+def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
+    """
+    Auto-trigger GitHub Actions via repository_dispatch.
+    Runs as a background task — does not block the API response.
+    Falls back silently to simulate_test_run if GitHub is not configured.
+    """
+    event_type = SUITE_TO_EVENT.get(test_suite_ref)
+    token      = settings.github_token
+    owner      = settings.github_repo_owner
+    repo       = settings.github_repo_name
+    public_url = settings.public_api_url
+
+    # If GitHub is not configured, fall back to simulation
+    if not all([event_type, token, owner, repo, public_url]):
+        svc.simulate_test_run(test_run_id)
+        return
+
+    callback_url = f"{public_url}/soft/tests/{test_run_id}"
+
+    try:
+        resp = httpx.post(
+            f"https://api.github.com/repos/{owner}/{repo}/dispatches",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept":        "application/vnd.github.v3+json",
+            },
+            json={
+                "event_type": event_type,
+                "ref":        "ks-software",
+                "client_payload": {
+                    "testRunId":   test_run_id,
+                    "callbackUrl": callback_url,
+                    "apiBaseUrl":  public_url,
+                },
+            },
+            timeout=10.0,
+        )
+        if resp.status_code != 204:
+            # GitHub dispatch failed — fall back to simulation
+            svc.simulate_test_run(test_run_id)
+    except Exception:
+        svc.simulate_test_run(test_run_id)
+
 
 router = APIRouter()
 
@@ -65,7 +122,11 @@ def trigger_test(req: TestTriggerRequest, background_tasks: BackgroundTasks):
             build_id=req.buildId,
             env_ref=req.envRef,
         )
-        background_tasks.add_task(svc.simulate_test_run, result["testRunId"])
+        background_tasks.add_task(
+            _dispatch_github_actions,
+            result["testRunId"],
+            req.testSuiteRef,
+        )
         return TestRunResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail={

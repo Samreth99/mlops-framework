@@ -45,5 +45,19 @@ class Settings:
         default_factory=lambda: os.getenv("DEFAULT_TEST_DATASET_PATH", "src/mlops/dimensions/data/breast_test.csv")
     )
 
+    # ── GitHub Actions Auto-Dispatch ──
+    github_token: str = field(
+        default_factory=lambda: os.getenv("GH_DISPATCH_TOKEN", "")
+    )
+    github_repo_owner: str = field(
+        default_factory=lambda: os.getenv("GH_REPO_OWNER", "")
+    )
+    github_repo_name: str = field(
+        default_factory=lambda: os.getenv("GH_REPO_NAME", "")
+    )
+    public_api_url: str = field(
+        default_factory=lambda: os.getenv("PUBLIC_API_URL", "http://localhost:8000")
+    )
+
 
 settings = Settings()

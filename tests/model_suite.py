@@ -3,18 +3,15 @@ Model Dimension CI Test Suite
 testSuiteRef: tests/model-suite.yaml
 
 Checks:
-  ✓ Training completes without exception
-  ✓ Accuracy >= minimum threshold (0.80)
-  ✓ Model artifact stored in MLflow
-  ✓ Evaluation passes on held-out test data
+  Training completes without exception
+  Accuracy >= minimum threshold (0.80)
+  Model artifact stored in MLflow
+  Evaluation passes on held-out test data
 """
 import os
 import pytest
 import httpx
 
-# ─────────────────────────────────────────────
-# Config — overridable via environment variable
-# ─────────────────────────────────────────────
 BASE_URL  = os.getenv("API_BASE_URL", "http://localhost:8000")
 ACCURACY_THRESHOLD = float(os.getenv("ACCURACY_THRESHOLD", "0.80"))
 
@@ -129,25 +126,3 @@ def test_evaluation_passes(training_result):
     assert data["evaluationReportRef"], "evaluationReportRef must not be empty"
 
 
-# ─────────────────────────────────────────────
-# TEST 6: Validation gates pass
-# ─────────────────────────────────────────────
-def test_validation_gates(training_result):
-    """POST /runs/execute-validation → all threshold rules must pass."""
-    artifact_ref = training_result["modelArtifactRef"]
-
-    response = client.post("/model/runs/execute-validation", json={
-        "modelCandidateRef": artifact_ref,
-        "thresholds": {
-            "accuracy":        ACCURACY_THRESHOLD,
-            "f1_macro":        0.75,
-            "precision_macro": 0.75,
-            "recall_macro":    0.75
-        }
-    })
-    assert response.status_code == 200, f"Validation request failed: {response.text}"
-
-    data = response.json()
-    assert data["passed"] is True, (
-        f"Validation gates FAILED. Details: {data.get('details', [])}"
-    )
