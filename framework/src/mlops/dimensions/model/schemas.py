@@ -108,7 +108,7 @@ class ExecuteValidationResponse(BaseModel):
 # ─────────────────────────────────────────────
 class ExecuteEvaluationRequest(BaseModel):
     modelCandidateRef: str = Field(..., description="Model URI")
-    evalDatasetVersion: str = Field(..., description="Evaluation dataset (path or URL)")
+    evalDatasetVersion: Optional[str] = Field(None, description="Evaluation dataset (path or URL). Defaults to configured test dataset.")
     metrics: List[str] = Field(default_factory=lambda: ["accuracy", "f1_macro"])
     fairnessChecks: Optional[List[Dict[str, Any]]] = None
     target_column: str = Field("Class")

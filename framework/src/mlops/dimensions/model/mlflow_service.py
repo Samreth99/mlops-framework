@@ -3,6 +3,13 @@ from __future__ import annotations
 import io
 import itertools
 import logging
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="Saving scikit-learn models in the pickle or cloudpickle format",
+    category=FutureWarning,
+)
 
 import numpy as np
 from datetime import datetime, timezone
@@ -175,8 +182,8 @@ def execute_training(
         except Exception:
             pass
 
-        mlflow.sklearn.log_model(**log_kwargs)
-        model_uri = f"runs:/{run_id}/model"
+        model_info = mlflow.sklearn.log_model(**log_kwargs)
+        model_uri = model_info.model_uri  # "models:/<model_id>" in MLflow 3.x
 
     return {
         "runId": run_id,
@@ -360,7 +367,7 @@ def _eval_operator(actual: float, op: str, threshold: float) -> bool:
 def execute_evaluation(
     *,
     model_candidate_ref: str,
-    eval_dataset_source: str,
+    eval_dataset_source: Optional[str] = None,
     metric_names: List[str],
     target_column: str = "Class",
     fairness_checks: Optional[List[Dict[str, Any]]] = None,
@@ -371,8 +378,12 @@ def execute_evaluation(
 
     client = _client()
 
-    # Load model
-    model = mlflow.pyfunc.load_model(model_candidate_ref)
+    # Fall back to default test dataset if none provided
+    if not eval_dataset_source:
+        eval_dataset_source = settings.default_test_dataset_path
+
+    # Load model (sklearn flavor avoids strict schema enforcement)
+    model = mlflow.sklearn.load_model(model_candidate_ref)
 
     # Load eval data
     df = _load_dataset(eval_dataset_source)
@@ -387,7 +398,7 @@ def execute_evaluation(
         le = LabelEncoder()
         y_eval = pd.Series(data=np.asarray(le.fit_transform(y_eval)), index=y_eval.index, name=target_column)
 
-    y_pred = model.predict(X_eval)
+    y_pred = model.predict(X_eval.astype(float))
 
     available_metrics = {
         "accuracy": lambda yt, yp: float(accuracy_score(yt, yp)),
@@ -656,13 +667,23 @@ def _resolve_experiment_id(
 
 
 def _resolve_run_id_from_uri(client: MlflowClient, model_uri: str) -> Optional[str]:
-    """Extract run_id from runs:/<run_id>/... or models:/<name>/<version>."""
+    """Extract run_id from runs:/<run_id>/..., models:/<model_id> (MLflow 3.x LoggedModel),
+    or models:/<name>/<version> (Model Registry)."""
     if model_uri.startswith("runs:/"):
         parts = model_uri.replace("runs:/", "").split("/")
         return parts[0] if parts else None
     if model_uri.startswith("models:/"):
         parts = model_uri.replace("models:/", "").split("/")
-        if len(parts) >= 2:
+        if len(parts) == 1:
+            # MLflow 3.x LoggedModel: models:/<model_id>
+            model_id = parts[0]
+            try:
+                logged_model = client.get_logged_model(model_id)
+                return logged_model.source_run_id
+            except Exception:
+                pass
+        elif len(parts) >= 2:
+            # Model Registry: models:/<name>/<version>
             name, version_or_stage = parts[0], parts[1]
             try:
                 mv = client.get_model_version(name, version_or_stage)
