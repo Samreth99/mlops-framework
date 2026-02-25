@@ -45,7 +45,7 @@ def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
     """
     Auto-trigger GitHub Actions via repository_dispatch.
     Runs as a background task — does not block the API response.
-    Falls back silently to simulate_test_run if GitHub is not configured.
+    Marks the test run as FAILED if GitHub is not configured or dispatch fails.
     """
     event_type = SUITE_TO_EVENT.get(test_suite_ref)
     token      = settings.github_token
@@ -53,9 +53,8 @@ def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
     repo       = settings.github_repo_name
     public_url = settings.public_api_url
 
-    # If GitHub is not configured, fall back to simulation
     if not all([event_type, token, owner, repo, public_url]):
-        svc.simulate_test_run(test_run_id)
+        svc.update_test_run(test_run_id, status="FAILED", passed=False)
         return
 
     callback_url = f"{public_url}/soft/tests/{test_run_id}"
@@ -79,10 +78,9 @@ def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
             timeout=10.0,
         )
         if resp.status_code != 204:
-            # GitHub dispatch failed — fall back to simulation
-            svc.simulate_test_run(test_run_id)
+            svc.update_test_run(test_run_id, status="FAILED", passed=False)
     except Exception:
-        svc.simulate_test_run(test_run_id)
+        svc.update_test_run(test_run_id, status="FAILED", passed=False)
 
 
 router = APIRouter()

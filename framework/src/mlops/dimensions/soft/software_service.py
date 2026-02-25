@@ -15,8 +15,6 @@ _store with a database-backed implementation.
 from __future__ import annotations
 
 import uuid
-import time
-import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -313,31 +311,6 @@ def trigger_test(
     return record
 
 
-def simulate_test_run(test_run_id: str) -> None:
-    """
-    Simulated CI backend.
-    Transitions the test run through: QUEUED → RUNNING → PASSED | FAILED
-    """
-    record = _store["test_runs"].get(test_run_id)
-    if record is None:
-        return
-
-    # Simulate CI picking up the job
-    time.sleep(3)
-    record["status"] = "RUNNING"
-
-    # Simulate test execution time
-    time.sleep(5)
-
-    # 80% pass rate for demo purposes
-    passed = random.random() < 0.8
-    record["status"]      = "PASSED" if passed else "FAILED"
-    record["passed"]      = passed
-    record["reportRef"]   = f"reports/{test_run_id}.html"
-    record["coverageRef"] = f"coverage/{test_run_id}.xml"
-    record["finished_at"] = _now()
-
-
 def update_test_run(
     test_run_id: str,
     status: str,
@@ -346,7 +319,7 @@ def update_test_run(
     coverage_ref: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    Called by GitHub Actions CI callback to set real test result.
+    Called by GitHub Actions CI callback (PATCH) to set the real test result.
     status: PASSED | FAILED
     """
     record = _store["test_runs"].get(test_run_id)
