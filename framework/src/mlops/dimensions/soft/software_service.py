@@ -15,6 +15,8 @@ _store with a database-backed implementation.
 from __future__ import annotations
 
 import uuid
+import time
+import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -285,6 +287,12 @@ def trigger_test(
         if pkg:
             build_id = pkg["buildId"]
 
+    # Auto-resolve packageId from the build's packageRefs if not explicitly provided
+    if build_id and package_id is None:
+        build = _store["builds"].get(build_id)
+        if build and build["packageRefs"]:
+            package_id = build["packageRefs"][0]
+
     test_run_id = _new_id("testrun-")
     record = {
         "testRunId": test_run_id,
@@ -302,6 +310,56 @@ def trigger_test(
         "finished_at": None,
     }
     _store["test_runs"][test_run_id] = record
+    return record
+
+
+def simulate_test_run(test_run_id: str) -> None:
+    """
+    Simulated CI backend.
+    Transitions the test run through: QUEUED → RUNNING → PASSED | FAILED
+    """
+    record = _store["test_runs"].get(test_run_id)
+    if record is None:
+        return
+
+    # Simulate CI picking up the job
+    time.sleep(3)
+    record["status"] = "RUNNING"
+
+    # Simulate test execution time
+    time.sleep(5)
+
+    # 80% pass rate for demo purposes
+    passed = random.random() < 0.8
+    record["status"]      = "PASSED" if passed else "FAILED"
+    record["passed"]      = passed
+    record["reportRef"]   = f"reports/{test_run_id}.html"
+    record["coverageRef"] = f"coverage/{test_run_id}.xml"
+    record["finished_at"] = _now()
+
+
+def update_test_run(
+    test_run_id: str,
+    status: str,
+    passed: Optional[bool] = None,
+    report_ref: Optional[str] = None,
+    coverage_ref: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Called by GitHub Actions CI callback to set real test result.
+    status: PASSED | FAILED
+    """
+    record = _store["test_runs"].get(test_run_id)
+    if record is None:
+        return None
+    record["status"]      = status
+    record["finished_at"] = _now()
+    if passed is not None:
+        record["passed"] = passed
+    if report_ref:
+        record["reportRef"] = report_ref
+    if coverage_ref:
+        record["coverageRef"] = coverage_ref
     return record
 
 

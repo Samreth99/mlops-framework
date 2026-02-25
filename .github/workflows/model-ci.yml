@@ -1,0 +1,122 @@
+name: Model Dimension CI (model-suite)
+
+# ─────────────────────────────────────────────
+# Payload expected:
+#   testRunId   : the testRunId from your API
+#   callbackUrl : http://<your-public-api>/soft/tests/{testRunId}
+# ─────────────────────────────────────────────
+on:
+  repository_dispatch:
+    types: [run-model-tests]
+
+  # Manual trigger — branch enforced by the job-level if guard below
+  workflow_dispatch:
+    inputs:
+      testRunId:
+        description: "Test Run ID from /soft/tests"
+        required: true
+      callbackUrl:
+        description: "Full callback URL: http://<host>/soft/tests/{testRunId}"
+        required: true
+      apiBaseUrl:
+        description: "Base URL of the API"
+        required: true
+        default: "http://localhost:8000"
+
+jobs:
+  run-model-tests:
+    runs-on: ubuntu-latest
+
+    # ── BRANCH GUARD ─────────────────────────────────────────────────
+    # Rejects any trigger that is NOT from ks-software branch
+    if: github.ref == 'refs/heads/ks-software'
+
+    env:
+      # Use dispatch payload or manual input
+      TEST_RUN_ID: ${{ github.event.client_payload.testRunId   || inputs.testRunId }}
+      CALLBACK_URL: ${{ github.event.client_payload.callbackUrl || inputs.callbackUrl }}
+      API_BASE_URL: ${{ github.event.client_payload.apiBaseUrl  || inputs.apiBaseUrl }}
+      ACCURACY_THRESHOLD: "0.80"
+
+    steps:
+      # ── 1. Checkout code ──────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Python ───────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. Install dependencies ───────────────────────────────────
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install httpx pytest pytest-html
+          pip install -e framework/
+
+      # ── 4. Wait for API to be reachable ───────────────────────────
+      - name: Wait for API health check
+        run: |
+          echo "Waiting for API at $API_BASE_URL ..."
+          for i in $(seq 1 10); do
+            if curl -sf "$API_BASE_URL/health" > /dev/null 2>&1; then
+              echo "API is up!"
+              break
+            fi
+            echo "Attempt $i/10 — retrying in 5s..."
+            sleep 5
+          done
+
+      # ── 5. Run pytest model suite ─────────────────────────────────
+      - name: Run model test suite
+        id: pytest
+        run: |
+          pytest tests/model_suite.py \
+            --html=reports/model-report.html \
+            --self-contained-html \
+            -v
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          ACCURACY_THRESHOLD: ${{ env.ACCURACY_THRESHOLD }}
+        continue-on-error: true # always run callback even on failure
+
+      # ── 6. Callback to API with real result ───────────────────────
+      - name: Report result to API (PASSED)
+        if: steps.pytest.outcome == 'success'
+        run: |
+          curl -s -X PATCH "$CALLBACK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "status":      "PASSED",
+              "passed":      true,
+              "reportRef":   "github-actions://model-ci/${{ github.run_id }}/report"
+            }'
+          echo "Reported PASSED to $CALLBACK_URL"
+
+      - name: Report result to API (FAILED)
+        if: steps.pytest.outcome != 'success'
+        run: |
+          curl -s -X PATCH "$CALLBACK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "status":    "FAILED",
+              "passed":    false,
+              "reportRef": "github-actions://model-ci/${{ github.run_id }}/report"
+            }'
+          echo "Reported FAILED to $CALLBACK_URL"
+
+      # ── 7. Upload test report as artifact ─────────────────────────
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-test-report-${{ github.run_id }}
+          path: reports/model-report.html
+
+      # ── 8. Fail the job if tests failed ───────────────────────────
+      - name: Fail job if tests failed
+        if: steps.pytest.outcome != 'success'
+        run: exit 1

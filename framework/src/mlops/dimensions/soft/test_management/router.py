@@ -4,12 +4,14 @@ Software – Test Management endpoints.
   POST  /tests               – Trigger a test execution (unit/integration/e2e)
   GET   /tests               – List test executions
   GET   /tests/{testRunId}   – Test results summary and evidence pointers
+  PATCH /tests/{testRunId}   – CI callback: update real test result from GitHub Actions
 """
 from __future__ import annotations
 
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from pydantic import BaseModel
 
 from ....core.logs import make_log
 from ..schemas import (
@@ -19,6 +21,13 @@ from ..schemas import (
 )
 from .. import software_service as svc
 
+
+class CICallbackRequest(BaseModel):
+    status: str
+    passed: Optional[bool] = None
+    reportRef: Optional[str] = None
+    coverageRef: Optional[str] = None
+
 router = APIRouter()
 
 
@@ -27,7 +36,7 @@ router = APIRouter()
 # ─────────────────────────────────────────────
 @router.post("/tests", response_model=TestRunResponse,
              summary="Trigger a test execution (unit/integration/e2e)")
-def trigger_test(req: TestTriggerRequest):
+def trigger_test(req: TestTriggerRequest, background_tasks: BackgroundTasks):
     """
     Queue a test run against a package or build.
 
@@ -56,6 +65,7 @@ def trigger_test(req: TestTriggerRequest):
             build_id=req.buildId,
             env_ref=req.envRef,
         )
+        background_tasks.add_task(svc.simulate_test_run, result["testRunId"])
         return TestRunResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail={
@@ -110,3 +120,34 @@ def get_test_run(testRunId: str):
             "error": {"code": "test_run_not_found", "message": f"Test run '{testRunId}' not found"}
         })
     return TestRunDetailResponse(**run)
+
+
+@router.patch("/tests/{testRunId}", response_model=TestRunDetailResponse,
+              summary="CI callback: update real test result from GitHub Actions")
+def ci_callback(testRunId: str, req: CICallbackRequest):
+    """
+    Called by GitHub Actions at the end of a real CI run.
+
+    GitHub Actions sends:
+      status    : PASSED | FAILED
+      passed    : true | false
+      reportRef : URL to test report artifact
+    """
+    make_log(
+        area="Soft",
+        component="Test Management",
+        endpoint=f"/soft/tests/{testRunId}",
+        meta={"testRunId": testRunId, "status": req.status},
+    )
+    result = svc.update_test_run(
+        test_run_id=testRunId,
+        status=req.status,
+        passed=req.passed,
+        report_ref=req.reportRef,
+        coverage_ref=req.coverageRef,
+    )
+    if result is None:
+        raise HTTPException(status_code=404, detail={
+            "error": {"code": "test_run_not_found", "message": f"Test run '{testRunId}' not found"}
+        })
+    return TestRunDetailResponse(**result)
