@@ -30,7 +30,7 @@ from .. import software_service as svc
 # Add new suites here as you create them
 # ─────────────────────────────────────────────
 SUITE_TO_WORKFLOW = {
-    "tests/model-suite.yaml": "model-ci.yml",
+    "tests/model-suite.yaml": "238673616",
 }
 
 
@@ -77,8 +77,15 @@ def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
             timeout=10.0,
         )
         if resp.status_code != 204:
+            import logging
+            logging.error(
+                "[CI Dispatch] GitHub returned %s: %s",
+                resp.status_code, resp.text
+            )
             svc.update_test_run(test_run_id, status="FAILED", passed=False)
-    except Exception:
+    except Exception as exc:
+        import logging
+        logging.error("[CI Dispatch] Exception: %s", exc)
         svc.update_test_run(test_run_id, status="FAILED", passed=False)
 
 
