@@ -32,8 +32,8 @@ jobs:
   run-model-tests:
     runs-on: ubuntu-latest
 
-    # Rejects any trigger that is NOT from ks-software branch
-    if: github.ref == 'refs/heads/ks-software'
+    # Only runs on explicit workflow_dispatch (not on push registration trigger)
+    if: github.ref == 'refs/heads/ks-software' && github.event_name == 'workflow_dispatch'
 
     env:
       TEST_RUN_ID:        ${{ inputs.testRunId }}

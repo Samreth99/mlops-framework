@@ -12,7 +12,7 @@ import os
 import pytest
 import httpx
 
-BASE_URL  = os.getenv("API_BASE_URL", "http://localhost:8000")
+BASE_URL  = os.getenv("API_BASE_URL") or "http://localhost:8000"
 ACCURACY_THRESHOLD = float(os.getenv("ACCURACY_THRESHOLD", "0.80"))
 
 client = httpx.Client(base_url=BASE_URL, timeout=120.0)
