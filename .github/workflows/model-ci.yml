@@ -20,6 +20,10 @@ on:
         required: true
         default: "http://localhost:8000"
 
+concurrency:
+  group: model-ci-suite
+  cancel-in-progress: true
+
 jobs:
   run-model-tests:
     runs-on: ubuntu-latest
