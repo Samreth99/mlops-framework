@@ -1,12 +1,7 @@
 name: Model Dimension CI (model-suite)
 
 on:
-  # Push trigger registers this workflow with GitHub Actions on ks-software
-  push:
-    branches: [ks-software]
-    paths: ['.github/workflows/model-ci.yml']
-
-  # Manual/API trigger from POST /soft/tests
+  # API trigger from POST /soft/tests
   workflow_dispatch:
     inputs:
       testRunId:

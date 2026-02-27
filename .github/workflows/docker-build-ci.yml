@@ -1,11 +1,6 @@
 name: Docker Build CI
 
 on:
-  # Push to ks-software registers this workflow with GitHub Actions
-  push:
-    branches: [ks-software]
-    paths: ['.github/workflows/docker-build-ci.yml']
-
   # API trigger from POST /soft/builds
   workflow_dispatch:
     inputs:
