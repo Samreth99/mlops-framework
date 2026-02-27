@@ -1,0 +1,2078 @@
+{
+  "sources": {
+    "53c83373": {
+      "sourceId": "53c83373",
+      "name": "Breast Cancer CSV Source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": "schemas/breast_cancer_v1",
+      "owner": "data-team",
+      "refreshCadence": "@weekly",
+      "status": "active",
+      "createdAt": "2026-02-27T00:04:45.920845+00:00"
+    },
+    "e02d8138": {
+      "sourceId": "e02d8138",
+      "name": "Breast Cancer CSV Source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": "schemas/breast_cancer_v1",
+      "owner": "data-team",
+      "refreshCadence": "@weekly",
+      "status": "active",
+      "createdAt": "2026-02-27T00:16:01.897460+00:00"
+    },
+    "34af9336": {
+      "sourceId": "34af9336",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "/data/breast_cancer.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:22:32.812501+00:00"
+    },
+    "f8434398": {
+      "sourceId": "f8434398",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "/data/breast_cancer.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:27:17.668201+00:00"
+    },
+    "502d42b7": {
+      "sourceId": "502d42b7",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "/data/breast_cancer.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:29:17.222179+00:00"
+    },
+    "7f603ca2": {
+      "sourceId": "7f603ca2",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "/data/breast_cancer.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:29:50.575828+00:00"
+    },
+    "8392b4d5": {
+      "sourceId": "8392b4d5",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:39:37.318875+00:00"
+    },
+    "859131be": {
+      "sourceId": "859131be",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:40:53.146564+00:00"
+    },
+    "064fe3e9": {
+      "sourceId": "064fe3e9",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:44:58.451194+00:00"
+    },
+    "222af357": {
+      "sourceId": "222af357",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:48:23.994585+00:00"
+    },
+    "d29494cc": {
+      "sourceId": "d29494cc",
+      "name": "breast-cancer-dataset",
+      "type": "file",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:50:35.649347+00:00"
+    },
+    "f5bc84b0": {
+      "sourceId": "f5bc84b0",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:53:36.319221+00:00"
+    },
+    "4bd1d2e6": {
+      "sourceId": "4bd1d2e6",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:54:30.606735+00:00"
+    },
+    "a83f6e2b": {
+      "sourceId": "a83f6e2b",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:54:37.433735+00:00"
+    },
+    "c34e03c1": {
+      "sourceId": "c34e03c1",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:55:05.644373+00:00"
+    },
+    "1e337e4b": {
+      "sourceId": "1e337e4b",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:55:07.082249+00:00"
+    },
+    "dd9b9a09": {
+      "sourceId": "dd9b9a09",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:56:37.150526+00:00"
+    },
+    "3140459f": {
+      "sourceId": "3140459f",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T02:59:43.530811+00:00"
+    },
+    "041936e4": {
+      "sourceId": "041936e4",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:00:14.474268+00:00"
+    },
+    "36b00ee4": {
+      "sourceId": "36b00ee4",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:03:53.626645+00:00"
+    },
+    "4337e16e": {
+      "sourceId": "4337e16e",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:06:48.740876+00:00"
+    },
+    "ad103b62": {
+      "sourceId": "ad103b62",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:08:40.387435+00:00"
+    },
+    "e71187c4": {
+      "sourceId": "e71187c4",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:10:54.044640+00:00"
+    },
+    "1b9f4d69": {
+      "sourceId": "1b9f4d69",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:12:48.640875+00:00"
+    },
+    "10a1c429": {
+      "sourceId": "10a1c429",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T03:20:59.409694+00:00"
+    },
+    "88749677": {
+      "sourceId": "88749677",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T04:36:30.058723+00:00"
+    },
+    "d70a5c30": {
+      "sourceId": "d70a5c30",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T04:46:55.016196+00:00"
+    },
+    "f12452b5": {
+      "sourceId": "f12452b5",
+      "name": "breast_cancer_source",
+      "type": "csv",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-02-27T04:50:18.313937+00:00"
+    }
+  },
+  "ingestions": {
+    "13fa74d3": {
+      "ingestionId": "13fa74d3",
+      "runId": "387f318b",
+      "sourceId": "53c83373",
+      "sourceName": "Breast Cancer CSV Source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": "2026-01-01/2026-01-31",
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": "TICKET-001",
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/13fa74d3/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/13fa74d3/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/13fa74d3/breast_train.csv",
+        "DVC tracking: False"
+      ],
+      "createdAt": "2026-02-27T00:09:21.847144+00:00"
+    },
+    "dde4c127": {
+      "ingestionId": "dde4c127",
+      "runId": "3e93f669",
+      "sourceId": "53c83373",
+      "sourceName": "Breast Cancer CSV Source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": "2026-01-01/2026-01-31",
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": "TICKET-001",
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/dde4c127/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/dde4c127/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/dde4c127/breast_train.csv",
+        "DVC tracking: False"
+      ],
+      "createdAt": "2026-02-27T00:16:19.661146+00:00"
+    },
+    "d38c85b9": {
+      "ingestionId": "d38c85b9",
+      "runId": "58123ee2",
+      "sourceId": "34af9336",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "/data/breast_cancer.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:22:32.886403+00:00"
+    },
+    "d8b203ec": {
+      "ingestionId": "d8b203ec",
+      "runId": "4e31c0e7",
+      "sourceId": "f8434398",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "/data/breast_cancer.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:27:17.694915+00:00"
+    },
+    "34de6b8d": {
+      "ingestionId": "34de6b8d",
+      "runId": "cdd6d480",
+      "sourceId": "502d42b7",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "/data/breast_cancer.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:29:17.243091+00:00"
+    },
+    "bef9f9a9": {
+      "ingestionId": "bef9f9a9",
+      "runId": "b288097c",
+      "sourceId": "7f603ca2",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "/data/breast_cancer.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:29:50.597357+00:00"
+    },
+    "371baf3c": {
+      "ingestionId": "371baf3c",
+      "runId": "5962db9a",
+      "sourceId": "8392b4d5",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:39:37.339416+00:00"
+    },
+    "503761fe": {
+      "ingestionId": "503761fe",
+      "runId": "db67ac26",
+      "sourceId": "859131be",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:40:53.176222+00:00"
+    },
+    "86acea69": {
+      "ingestionId": "86acea69",
+      "runId": "8a047e2c",
+      "sourceId": "064fe3e9",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:44:58.483526+00:00"
+    },
+    "fa3252a7": {
+      "ingestionId": "fa3252a7",
+      "runId": "4291c2ee",
+      "sourceId": "222af357",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:48:24.029168+00:00"
+    },
+    "cb7b5d41": {
+      "ingestionId": "cb7b5d41",
+      "runId": "06fa0d0c",
+      "sourceId": "d29494cc",
+      "sourceName": "breast-cancer-dataset",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {},
+      "ticketId": null,
+      "status": "accepted",
+      "progress": 0.0,
+      "outputRefs": [],
+      "outputDatasetVersionId": null,
+      "s3Ref": null,
+      "logs": [],
+      "createdAt": "2026-02-27T02:50:35.671453+00:00"
+    },
+    "62b68cf1": {
+      "ingestionId": "62b68cf1",
+      "runId": "8352e177",
+      "sourceId": "36b00ee4",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/62b68cf1/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/62b68cf1/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/62b68cf1/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T03:04:03.866393+00:00"
+    },
+    "657b2172": {
+      "ingestionId": "657b2172",
+      "runId": "aef927a8",
+      "sourceId": "4337e16e",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/657b2172/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/657b2172/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/657b2172/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T03:06:58.802765+00:00"
+    },
+    "3f970e0b": {
+      "ingestionId": "3f970e0b",
+      "runId": "4f931162",
+      "sourceId": "ad103b62",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/3f970e0b/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/3f970e0b/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/3f970e0b/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T03:08:52.222937+00:00"
+    },
+    "c7bdefb5": {
+      "ingestionId": "c7bdefb5",
+      "runId": "af121311",
+      "sourceId": "e71187c4",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/c7bdefb5/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/c7bdefb5/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/c7bdefb5/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T03:11:04.502477+00:00"
+    },
+    "15dd1e24": {
+      "ingestionId": "15dd1e24",
+      "runId": "e66b9079",
+      "sourceId": "1b9f4d69",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/15dd1e24/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/15dd1e24/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/15dd1e24/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T03:12:58.689918+00:00"
+    },
+    "147503c6": {
+      "ingestionId": "147503c6",
+      "runId": "5673b12e",
+      "sourceId": "10a1c429",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/147503c6/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/147503c6/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/147503c6/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T03:21:09.395860+00:00"
+    },
+    "578cc1ff": {
+      "ingestionId": "578cc1ff",
+      "runId": "451645db",
+      "sourceId": "88749677",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/578cc1ff/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/578cc1ff/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/578cc1ff/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T04:36:42.489565+00:00"
+    },
+    "792be9b1": {
+      "ingestionId": "792be9b1",
+      "runId": "66166fd3",
+      "sourceId": "d70a5c30",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/792be9b1/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/792be9b1/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/792be9b1/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T04:47:05.678047+00:00"
+    },
+    "9316231f": {
+      "ingestionId": "9316231f",
+      "runId": "647d1bb4",
+      "sourceId": "f12452b5",
+      "sourceName": "breast_cancer_source",
+      "connectionRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+      "mode": "batch",
+      "window": null,
+      "params": {
+        "localFilePath": "src/mlops/dimensions/data/data-storage/breast_train.csv"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/ingestions/9316231f/breast_train.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/ingestions/9316231f/breast_train.csv",
+      "logs": [
+        "Uploaded src/mlops/dimensions/data/data-storage/breast_train.csv \u2192 s3://mlops-storage/ingestions/9316231f/breast_train.csv",
+        "DVC tracking: True"
+      ],
+      "createdAt": "2026-02-27T04:50:30.104478+00:00"
+    }
+  },
+  "datasets": {
+    "bd12b8e5": {
+      "datasetId": "bd12b8e5",
+      "name": "Breast Cancer Dataset",
+      "owner": "data-team",
+      "domain": "medical",
+      "description": "Wisconsin Breast Cancer diagnostic dataset",
+      "schemaRef": "schemas/breast_cancer_v1",
+      "createdAt": "2026-02-27T00:13:09.932909+00:00"
+    },
+    "0e0e2043": {
+      "datasetId": "0e0e2043",
+      "name": "Breast Cancer Dataset",
+      "owner": "data-team",
+      "domain": "medical",
+      "description": "Wisconsin Breast Cancer diagnostic dataset",
+      "schemaRef": "schemas/breast_cancer_v1",
+      "createdAt": "2026-02-27T00:16:39.627835+00:00"
+    },
+    "dd456d39": {
+      "datasetId": "dd456d39",
+      "name": "Breast Cancer Dataset",
+      "owner": "data-team",
+      "domain": "medical",
+      "description": "Wisconsin Breast Cancer diagnostic dataset",
+      "schemaRef": "schemas/breast_cancer_v1",
+      "createdAt": "2026-02-27T00:21:40.566588+00:00"
+    },
+    "411849ef": {
+      "datasetId": "411849ef",
+      "name": "preprocessed_v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T00:26:45.477025+00:00"
+    },
+    "1e4b3b59": {
+      "datasetId": "1e4b3b59",
+      "name": "preprocessed_v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T00:29:04.045620+00:00"
+    },
+    "11d3fbbb": {
+      "datasetId": "11d3fbbb",
+      "name": "labeled_v1",
+      "owner": null,
+      "domain": null,
+      "description": "Labeled version of v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T00:37:55.046866+00:00"
+    },
+    "d49d89df": {
+      "datasetId": "d49d89df",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:22:33.120997+00:00"
+    },
+    "b31021bb": {
+      "datasetId": "b31021bb",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:27:17.749058+00:00"
+    },
+    "09ecba39": {
+      "datasetId": "09ecba39",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:29:17.269534+00:00"
+    },
+    "3eb30087": {
+      "datasetId": "3eb30087",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:29:50.628784+00:00"
+    },
+    "284283f3": {
+      "datasetId": "284283f3",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:39:37.385338+00:00"
+    },
+    "3928e575": {
+      "datasetId": "3928e575",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:40:53.227383+00:00"
+    },
+    "04ad09b4": {
+      "datasetId": "04ad09b4",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:44:58.514252+00:00"
+    },
+    "ad300a66": {
+      "datasetId": "ad300a66",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:48:24.067626+00:00"
+    },
+    "7e772bd2": {
+      "datasetId": "7e772bd2",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": null,
+      "description": null,
+      "schemaRef": null,
+      "createdAt": "2026-02-27T02:50:35.700246+00:00"
+    },
+    "7b15b087": {
+      "datasetId": "7b15b087",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:04:04.008932+00:00"
+    },
+    "e9ee30a5": {
+      "datasetId": "e9ee30a5",
+      "name": "preprocessed_7b15b087/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 7b15b087/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:04:33.290275+00:00"
+    },
+    "57795bb2": {
+      "datasetId": "57795bb2",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:06:58.842900+00:00"
+    },
+    "d19d1fd7": {
+      "datasetId": "d19d1fd7",
+      "name": "preprocessed_57795bb2/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 57795bb2/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:07:29.976128+00:00"
+    },
+    "f41ab94a": {
+      "datasetId": "f41ab94a",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:08:52.272817+00:00"
+    },
+    "f22e80f4": {
+      "datasetId": "f22e80f4",
+      "name": "preprocessed_f41ab94a/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version f41ab94a/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:09:22.900094+00:00"
+    },
+    "fc560488": {
+      "datasetId": "fc560488",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:11:04.616316+00:00"
+    },
+    "4702fec5": {
+      "datasetId": "4702fec5",
+      "name": "preprocessed_fc560488/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version fc560488/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:11:33.371464+00:00"
+    },
+    "56caf04b": {
+      "datasetId": "56caf04b",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:12:58.731430+00:00"
+    },
+    "7f310a92": {
+      "datasetId": "7f310a92",
+      "name": "preprocessed_56caf04b/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 56caf04b/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:13:27.688566+00:00"
+    },
+    "b2d07e0f": {
+      "datasetId": "b2d07e0f",
+      "name": "preprocessed_v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:16:34.295472+00:00"
+    },
+    "4acfb043": {
+      "datasetId": "4acfb043",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:21:09.448392+00:00"
+    },
+    "0b8ca6c7": {
+      "datasetId": "0b8ca6c7",
+      "name": "preprocessed_4acfb043/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 4acfb043/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T03:21:37.439371+00:00"
+    },
+    "870ffb8a": {
+      "datasetId": "870ffb8a",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T04:36:42.664410+00:00"
+    },
+    "06ac8209": {
+      "datasetId": "06ac8209",
+      "name": "preprocessed_870ffb8a/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 870ffb8a/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T04:37:13.298030+00:00"
+    },
+    "2bb2472f": {
+      "datasetId": "2bb2472f",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T04:47:05.729111+00:00"
+    },
+    "0b9ead01": {
+      "datasetId": "0b9ead01",
+      "name": "preprocessed_2bb2472f/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 2bb2472f/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T04:47:35.969870+00:00"
+    },
+    "0b51eebc": {
+      "datasetId": "0b51eebc",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "healthcare",
+      "description": "Breast cancer diagnostic dataset",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T04:50:30.163809+00:00"
+    },
+    "593908cd": {
+      "datasetId": "593908cd",
+      "name": "preprocessed_0b51eebc/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 0b51eebc/v1",
+      "schemaRef": null,
+      "createdAt": "2026-02-27T04:50:58.497439+00:00"
+    }
+  },
+  "dataset_versions": {
+    "bd12b8e5": {
+      "780f9855": {
+        "versionId": "780f9855",
+        "datasetId": "bd12b8e5",
+        "storageRef": "s3://mlops-storage/datasets/bd12b8e5/versions/780f9855/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": "schemas/breast_cancer_v1",
+        "lineage": {
+          "parentVersions": [],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 455,
+          "columns": 31
+        },
+        "ticketId": "TICKET-001",
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T00:15:13.661004+00:00"
+      }
+    },
+    "0e0e2043": {
+      "93d7216f": {
+        "versionId": "93d7216f",
+        "datasetId": "0e0e2043",
+        "storageRef": "s3://mlops-storage/datasets/0e0e2043/versions/93d7216f/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": "schemas/breast_cancer_v1",
+        "lineage": {
+          "parentVersions": [],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 455,
+          "columns": 31
+        },
+        "ticketId": "TICKET-001",
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T00:17:01.950308+00:00"
+      }
+    },
+    "dd456d39": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "dd456d39",
+        "storageRef": "s3://mlops-storage/datasets/dd456d39/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": "schemas/breast_cancer_v1",
+        "lineage": {
+          "parentVersions": [],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 455,
+          "columns": 31
+        },
+        "ticketId": "TICKET-001",
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T00:22:03.204990+00:00"
+      },
+      "v2": {
+        "versionId": "v2",
+        "datasetId": "dd456d39",
+        "storageRef": "s3://mlops-storage/datasets/dd456d39/versions/v2/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/dd456d39/versions/v2/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/dd456d39/versions/v2/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": "schemas/breast_cancer_v1",
+        "lineage": {
+          "parentVersions": [],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 455,
+          "columns": 31
+        },
+        "ticketId": "TICKET-001",
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T01:03:58.533528+00:00"
+      }
+    },
+    "411849ef": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "411849ef",
+        "storageRef": "s3://mlops-storage/datasets/411849ef/versions/v1/tmpjgj9f723.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmpjgj9f723.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": "TICKET-002",
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T00:26:48.016942+00:00"
+      }
+    },
+    "1e4b3b59": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "1e4b3b59",
+        "storageRef": "s3://mlops-storage/datasets/1e4b3b59/versions/v1/tmpestbvdbd.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmpestbvdbd.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": "TICKET-002",
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T00:29:06.385550+00:00"
+      }
+    },
+    "11d3fbbb": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "11d3fbbb",
+        "storageRef": "s3://mlops-storage/datasets/11d3fbbb/versions/v1/tmp7gpu99d6.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmp7gpu99d6.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "v1"
+          ],
+          "toolingRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "labeled_column": "diagnosis"
+        },
+        "ticketId": "TICKET-005",
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T00:37:57.669841+00:00"
+      }
+    },
+    "d49d89df": {},
+    "b31021bb": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "b31021bb",
+        "storageRef": "/data/breast_cancer.csv",
+        "localRef": "/data/breast_cancer.csv",
+        "trainStorageRef": null,
+        "testStorageRef": null,
+        "trainLocalRef": null,
+        "testLocalRef": null,
+        "digest": null,
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "f8434398",
+          "ingestionId": "d8b203ec"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:27:17.805677+00:00"
+      }
+    },
+    "09ecba39": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "09ecba39",
+        "storageRef": "/data/breast_cancer.csv",
+        "localRef": "/data/breast_cancer.csv",
+        "trainStorageRef": null,
+        "testStorageRef": null,
+        "trainLocalRef": null,
+        "testLocalRef": null,
+        "digest": null,
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "502d42b7",
+          "ingestionId": "34de6b8d"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:29:17.291321+00:00"
+      }
+    },
+    "3eb30087": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "3eb30087",
+        "storageRef": "/data/breast_cancer.csv",
+        "localRef": "/data/breast_cancer.csv",
+        "trainStorageRef": null,
+        "testStorageRef": null,
+        "trainLocalRef": null,
+        "testLocalRef": null,
+        "digest": null,
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "7f603ca2",
+          "ingestionId": "bef9f9a9"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:29:51.981135+00:00"
+      }
+    },
+    "284283f3": {},
+    "3928e575": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "3928e575",
+        "storageRef": "s3://mlops-storage/datasets/3928e575/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/3928e575/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/3928e575/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "859131be",
+          "ingestionId": "503761fe"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:41:24.671562+00:00"
+      }
+    },
+    "04ad09b4": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "04ad09b4",
+        "storageRef": "s3://mlops-storage/datasets/04ad09b4/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/04ad09b4/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/04ad09b4/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "064fe3e9",
+          "ingestionId": "86acea69"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:45:28.086866+00:00"
+      }
+    },
+    "ad300a66": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "ad300a66",
+        "storageRef": "s3://mlops-storage/datasets/ad300a66/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/ad300a66/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/ad300a66/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "222af357",
+          "ingestionId": "fa3252a7"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:48:54.297538+00:00"
+      }
+    },
+    "7e772bd2": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "7e772bd2",
+        "storageRef": "s3://mlops-storage/datasets/7e772bd2/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/7e772bd2/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/7e772bd2/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {
+          "sourceId": "d29494cc",
+          "ingestionId": "cb7b5d41"
+        },
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T02:51:04.557251+00:00"
+      }
+    },
+    "7b15b087": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "7b15b087",
+        "storageRef": "s3://mlops-storage/datasets/7b15b087/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/7b15b087/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/7b15b087/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:04:33.170193+00:00"
+      }
+    },
+    "e9ee30a5": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "e9ee30a5",
+        "storageRef": "s3://mlops-storage/datasets/e9ee30a5/versions/v1/tmpwn7t5u6k.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmpwn7t5u6k.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/e9ee30a5/versions/v1/train/tmpwn7t5u6k_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/e9ee30a5/versions/v1/test/tmpwn7t5u6k_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpwn7t5u6k_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpwn7t5u6k_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "7b15b087/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:04:55.310966+00:00"
+      }
+    },
+    "57795bb2": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "57795bb2",
+        "storageRef": "s3://mlops-storage/datasets/57795bb2/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/57795bb2/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/57795bb2/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:07:29.933231+00:00"
+      }
+    },
+    "d19d1fd7": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "d19d1fd7",
+        "storageRef": "s3://mlops-storage/datasets/d19d1fd7/versions/v1/tmp6yb3k1wg.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmp6yb3k1wg.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/d19d1fd7/versions/v1/train/tmp6yb3k1wg_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/d19d1fd7/versions/v1/test/tmp6yb3k1wg_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp6yb3k1wg_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp6yb3k1wg_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "57795bb2/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:07:53.623016+00:00"
+      }
+    },
+    "f41ab94a": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "f41ab94a",
+        "storageRef": "s3://mlops-storage/datasets/f41ab94a/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/f41ab94a/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/f41ab94a/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:09:22.857565+00:00"
+      }
+    },
+    "f22e80f4": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "f22e80f4",
+        "storageRef": "s3://mlops-storage/datasets/f22e80f4/versions/v1/tmphy2wx0wl.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmphy2wx0wl.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/f22e80f4/versions/v1/train/tmphy2wx0wl_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/f22e80f4/versions/v1/test/tmphy2wx0wl_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmphy2wx0wl_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmphy2wx0wl_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "f41ab94a/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:09:46.625179+00:00"
+      }
+    },
+    "fc560488": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "fc560488",
+        "storageRef": "s3://mlops-storage/datasets/fc560488/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/fc560488/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/fc560488/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:11:33.270406+00:00"
+      }
+    },
+    "4702fec5": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "4702fec5",
+        "storageRef": "s3://mlops-storage/datasets/4702fec5/versions/v1/tmp7ivcvae_.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmp7ivcvae_.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/4702fec5/versions/v1/train/tmp7ivcvae__train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/4702fec5/versions/v1/test/tmp7ivcvae__test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp7ivcvae__train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp7ivcvae__test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "fc560488/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:11:55.200866+00:00"
+      }
+    },
+    "56caf04b": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "56caf04b",
+        "storageRef": "s3://mlops-storage/datasets/56caf04b/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/56caf04b/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/56caf04b/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:13:27.648301+00:00"
+      }
+    },
+    "7f310a92": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "7f310a92",
+        "storageRef": "s3://mlops-storage/datasets/7f310a92/versions/v1/tmp5nk0k0r0.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmp5nk0k0r0.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/7f310a92/versions/v1/train/tmp5nk0k0r0_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/7f310a92/versions/v1/test/tmp5nk0k0r0_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp5nk0k0r0_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp5nk0k0r0_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "56caf04b/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:13:50.476270+00:00"
+      }
+    },
+    "b2d07e0f": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "b2d07e0f",
+        "storageRef": "s3://mlops-storage/datasets/b2d07e0f/versions/v1/tmpozwg3njy.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmpozwg3njy.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/b2d07e0f/versions/v1/train/tmpozwg3njy_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/b2d07e0f/versions/v1/test/tmpozwg3njy_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpozwg3njy_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpozwg3njy_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": "TICKET-002",
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:16:52.980165+00:00"
+      }
+    },
+    "4acfb043": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "4acfb043",
+        "storageRef": "s3://mlops-storage/datasets/4acfb043/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/4acfb043/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/4acfb043/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:21:37.398732+00:00"
+      }
+    },
+    "0b8ca6c7": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "0b8ca6c7",
+        "storageRef": "s3://mlops-storage/datasets/0b8ca6c7/versions/v1/tmps0_gg18b.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmps0_gg18b.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/0b8ca6c7/versions/v1/train/tmps0_gg18b_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/0b8ca6c7/versions/v1/test/tmps0_gg18b_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmps0_gg18b_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmps0_gg18b_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "4acfb043/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T03:21:57.581780+00:00"
+      }
+    },
+    "870ffb8a": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "870ffb8a",
+        "storageRef": "s3://mlops-storage/datasets/870ffb8a/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/870ffb8a/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/870ffb8a/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T04:37:13.216985+00:00"
+      }
+    },
+    "06ac8209": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "06ac8209",
+        "storageRef": "s3://mlops-storage/datasets/06ac8209/versions/v1/tmpv8epzubd.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmpv8epzubd.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/06ac8209/versions/v1/train/tmpv8epzubd_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/06ac8209/versions/v1/test/tmpv8epzubd_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpv8epzubd_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpv8epzubd_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "870ffb8a/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T04:37:35.091945+00:00"
+      }
+    },
+    "2bb2472f": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "2bb2472f",
+        "storageRef": "s3://mlops-storage/datasets/2bb2472f/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/2bb2472f/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/2bb2472f/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T04:47:35.925228+00:00"
+      }
+    },
+    "0b9ead01": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "0b9ead01",
+        "storageRef": "s3://mlops-storage/datasets/0b9ead01/versions/v1/tmpsae1no_h.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmpsae1no_h.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/0b9ead01/versions/v1/train/tmpsae1no_h_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/0b9ead01/versions/v1/test/tmpsae1no_h_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpsae1no_h_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmpsae1no_h_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "2bb2472f/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T04:47:59.601383+00:00"
+      }
+    },
+    "0b51eebc": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "0b51eebc",
+        "storageRef": "s3://mlops-storage/datasets/0b51eebc/versions/v1/breast_train.csv",
+        "localRef": "src/mlops/dimensions/data/data-storage/breast_train.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/0b51eebc/versions/v1/train/breast_train_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/0b51eebc/versions/v1/test/breast_train_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_train_test.csv",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T04:50:58.450197+00:00"
+      }
+    },
+    "593908cd": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "593908cd",
+        "storageRef": "s3://mlops-storage/datasets/593908cd/versions/v1/tmp4vqu8746.csv",
+        "localRef": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\tmp4vqu8746.csv",
+        "trainStorageRef": "s3://mlops-storage/datasets/593908cd/versions/v1/train/tmp4vqu8746_train.csv",
+        "testStorageRef": "s3://mlops-storage/datasets/593908cd/versions/v1/test/tmp4vqu8746_test.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp4vqu8746_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\tmp4vqu8746_test.csv",
+        "digest": "0138a1580cb81f7296fa177a90ed36f3",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "0b51eebc/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 546,
+          "columns": 10
+        },
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-02-27T04:51:19.135471+00:00"
+      }
+    }
+  },
+  "features": {
+    "a3487da7": {
+      "featureSetId": "a3487da7",
+      "name": "features_v1",
+      "owner": null,
+      "entitySchema": "diagnosis",
+      "description": "Auto-engineered from dataset version v1",
+      "createdAt": "2026-02-27T00:40:04.503043+00:00"
+    },
+    "ac16491d": {
+      "featureSetId": "ac16491d",
+      "name": "Breast Cancer Features",
+      "owner": "ml-team",
+      "entitySchema": "patient_id: str",
+      "description": "Core numeric features for breast cancer classification",
+      "createdAt": "2026-02-27T00:41:21.130264+00:00"
+    },
+    "b83de3b4": {
+      "featureSetId": "b83de3b4",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:27:17.969402+00:00"
+    },
+    "3a39bcf1": {
+      "featureSetId": "3a39bcf1",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:29:17.327639+00:00"
+    },
+    "85011ae7": {
+      "featureSetId": "85011ae7",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:29:52.025806+00:00"
+    },
+    "8434a855": {
+      "featureSetId": "8434a855",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:41:24.716078+00:00"
+    },
+    "bbccce7c": {
+      "featureSetId": "bbccce7c",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:45:28.123177+00:00"
+    },
+    "274a8ad0": {
+      "featureSetId": "274a8ad0",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:48:54.341668+00:00"
+    },
+    "a7a5615e": {
+      "featureSetId": "a7a5615e",
+      "name": "breast-cancer-dataset-features",
+      "owner": "data-engineer",
+      "entitySchema": null,
+      "description": null,
+      "createdAt": "2026-02-27T02:51:04.598094+00:00"
+    },
+    "36c31b7e": {
+      "featureSetId": "36c31b7e",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T03:04:55.390368+00:00"
+    },
+    "3dc1645b": {
+      "featureSetId": "3dc1645b",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T03:07:53.647450+00:00"
+    },
+    "0018fd9c": {
+      "featureSetId": "0018fd9c",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T03:13:50.537826+00:00"
+    },
+    "7cd11143": {
+      "featureSetId": "7cd11143",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T03:21:57.604724+00:00"
+    },
+    "6092ffe1": {
+      "featureSetId": "6092ffe1",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T04:37:35.188193+00:00"
+    },
+    "88f4a484": {
+      "featureSetId": "88f4a484",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T04:47:59.624206+00:00"
+    },
+    "8f169cfd": {
+      "featureSetId": "8f169cfd",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id",
+      "description": "Preprocessed breast cancer feature set",
+      "createdAt": "2026-02-27T04:51:19.161379+00:00"
+    }
+  },
+  "feature_versions": {
+    "a3487da7": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "a3487da7",
+        "storageRef": "s3://mlops-storage/features/a3487da7/versions/fv1/tmpxthyvyso.csv",
+        "schemaRef": null,
+        "computedFrom": "v1",
+        "digest": "05bb4a0747b3f1ff044475ea1b445f0d",
+        "ticketId": "TICKET-006",
+        "dvcTracked": false,
+        "createdAt": "2026-02-27T00:40:06.914243+00:00"
+      }
+    },
+    "ac16491d": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "ac16491d",
+        "storageRef": "s3://mlops-storage/features/ac16491d/versions/fv1/breast_train.csv",
+        "schemaRef": "schemas/breast_features_v1",
+        "computedFrom": "v1",
+        "digest": "dfcd6d95b3718f7be36c55a37ce9a8ce",
+        "ticketId": "TICKET-007",
+        "dvcTracked": true,
+        "createdAt": "2026-02-27T00:45:02.849557+00:00"
+      }
+    },
+    "b83de3b4": {},
+    "3a39bcf1": {},
+    "85011ae7": {},
+    "8434a855": {},
+    "bbccce7c": {},
+    "274a8ad0": {},
+    "a7a5615e": {},
+    "36c31b7e": {},
+    "3dc1645b": {},
+    "0018fd9c": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "0018fd9c",
+        "storageRef": "s3://mlops-storage/datasets/7f310a92/versions/v1/tmp5nk0k0r0.csv",
+        "schemaRef": null,
+        "computedFrom": "7f310a92/v1",
+        "digest": null,
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdAt": "2026-02-27T03:13:50.562246+00:00"
+      }
+    },
+    "7cd11143": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "7cd11143",
+        "storageRef": "s3://mlops-storage/datasets/0b8ca6c7/versions/v1/tmps0_gg18b.csv",
+        "schemaRef": null,
+        "computedFrom": "0b8ca6c7/v1",
+        "digest": null,
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdAt": "2026-02-27T03:21:57.626330+00:00"
+      }
+    },
+    "6092ffe1": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "6092ffe1",
+        "storageRef": "s3://mlops-storage/datasets/06ac8209/versions/v1/tmpv8epzubd.csv",
+        "schemaRef": null,
+        "computedFrom": "06ac8209/v1",
+        "digest": null,
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdAt": "2026-02-27T04:37:35.265283+00:00"
+      }
+    },
+    "88f4a484": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "88f4a484",
+        "storageRef": "s3://mlops-storage/datasets/0b9ead01/versions/v1/tmpsae1no_h.csv",
+        "schemaRef": null,
+        "computedFrom": "0b9ead01/v1",
+        "digest": null,
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdAt": "2026-02-27T04:47:59.648471+00:00"
+      }
+    },
+    "8f169cfd": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "8f169cfd",
+        "storageRef": "s3://mlops-storage/datasets/593908cd/versions/v1/tmp4vqu8746.csv",
+        "schemaRef": null,
+        "computedFrom": "593908cd/v1",
+        "digest": null,
+        "ticketId": null,
+        "dvcTracked": false,
+        "createdAt": "2026-02-27T04:51:19.186419+00:00"
+      }
+    }
+  }
+}

@@ -22,6 +22,7 @@ from mlflow.models.signature import infer_signature
 from mlflow.tracking import MlflowClient
 
 from ...config import settings
+from ...dimensions.data import s3_service as data_svc
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +118,9 @@ def execute_training(
     # Resolve experiment
     exp_id = _resolve_experiment_id(client, experiment_id, experiment_name)
 
-    # Load data
-    df = _load_dataset(dataset_source)
+    # Load train split
+    train_path = data_svc.resolve_split_path(dataset_source, split="train")
+    df = _load_dataset(train_path)
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not found in dataset columns: {list(df.columns)}")
 
@@ -218,7 +220,8 @@ def execute_tuning(
     client = _client()
     exp_id = _resolve_experiment_id(client, experiment_id, experiment_name)
 
-    df = _load_dataset(dataset_source)
+    train_path = data_svc.resolve_split_path(dataset_source, split="train")
+    df = _load_dataset(train_path)
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not in dataset")
 
@@ -385,8 +388,9 @@ def execute_evaluation(
     # Load model (sklearn flavor avoids strict schema enforcement)
     model = mlflow.sklearn.load_model(model_candidate_ref)
 
-    # Load eval data
-    df = _load_dataset(eval_dataset_source)
+    # Load test split
+    test_path = data_svc.resolve_split_path(eval_dataset_source, split="test")
+    df = _load_dataset(test_path)
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not in eval dataset")
 
@@ -700,12 +704,18 @@ def _resolve_run_id_from_uri(client: MlflowClient, model_uri: str) -> Optional[s
 
 
 def _load_dataset(source: Optional[str]) -> "pd.DataFrame":
-    """Load a dataset from a file path or URL."""
+    """Load a dataset from a local path, S3 URI, or HTTP URL."""
     import pandas as pd
 
     if not source:
         default = settings.default_dataset_path
         return pd.read_csv(default).dropna().reset_index(drop=True)
+
+    if source.startswith("s3://"):
+        local_path = data_svc.download_from_s3(source, str(
+            (data_svc._DATA_STORAGE / source.split("/")[-1])
+        ))
+        return pd.read_csv(local_path).dropna().reset_index(drop=True)
 
     if source.startswith("http://") or source.startswith("https://"):
         import httpx

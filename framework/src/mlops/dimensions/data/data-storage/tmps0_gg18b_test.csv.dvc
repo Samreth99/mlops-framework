@@ -1,0 +1,5 @@
+outs:
+- md5: 34c08607f8b5b562daaed5d34b6d723d
+  size: 3232
+  hash: md5
+  path: tmps0_gg18b_test.csv
