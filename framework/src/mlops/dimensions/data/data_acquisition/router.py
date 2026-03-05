@@ -113,6 +113,11 @@ def create_ingestion(req: IngestionCreateRequest):
             params=req.params,
             ticket_id=req.ticketId,
         )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": {"code": "invalid_request", "message": str(exc)}},
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -125,6 +130,9 @@ def create_ingestion(req: IngestionCreateRequest):
         mode=record["mode"],
         status=record["status"],
         accepted=True,
+        outputRefs=record.get("outputRefs", []),
+        s3Ref=record.get("s3Ref"),
+        localRef=record.get("localRef"),
         createdAt=record["createdAt"],
     )
 
@@ -148,6 +156,9 @@ def list_ingestions():
             mode=r["mode"],
             status=r["status"],
             accepted=True,
+            outputRefs=r.get("outputRefs", []),
+            s3Ref=r.get("s3Ref"),
+            localRef=r.get("localRef"),
             createdAt=r["createdAt"],
         )
         for r in svc.list_ingestions()
@@ -193,6 +204,7 @@ def get_ingestion(
         status=record["status"],
         outputDatasetVersionId=record.get("outputDatasetVersionId"),
         s3Ref=record.get("s3Ref"),
+        localRef=record.get("localRef"),
         logs=record.get("logs") if includeLogs else None,
         createdAt=record["createdAt"],
     )

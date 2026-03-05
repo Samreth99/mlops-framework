@@ -35,7 +35,15 @@ class IngestionCreateRequest(BaseModel):
     sourceId: str = Field(..., description="Source connector ID")
     mode: str = Field(..., description="batch or stream")
     window: Optional[str] = Field(None, description="Time window for batch: e.g. 2024-01-01/2024-01-31")
-    params: Optional[Dict[str, Any]] = Field(None, description="Extra params, e.g. {'localFilePath': '/path/to/file.csv'}")
+    params: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Extra params. "
+            "Use {'secretRef': 'mlops/breast-dataset'} to pull the file from S3 via Secrets Manager. "
+            "Use {'localFilePath': '/path/to/file.csv'} for a local upload (legacy). "
+            "For sources with type='s3', secretRef is auto-resolved from connectionRef if not provided."
+        ),
+    )
     ticketId: Optional[str] = Field(None, description="Linked orchestration ticket")
 
 
@@ -46,6 +54,9 @@ class IngestionResponse(BaseModel):
     mode: str
     status: str
     accepted: bool = True
+    outputRefs: List[str] = []
+    s3Ref: Optional[str] = None
+    localRef: Optional[str] = None
     createdAt: str
 
 
@@ -62,6 +73,7 @@ class IngestionDetailResponse(BaseModel):
     status: str
     outputDatasetVersionId: Optional[str] = None
     s3Ref: Optional[str] = None
+    localRef: Optional[str] = None
     logs: Optional[List[str]] = None
     createdAt: str
 
@@ -87,7 +99,7 @@ class DatasetCreateRequest(BaseModel):
 
 class DatasetUpdateRequest(BaseModel):
     description: Optional[str] = None
-    owners: Optional[List[str]] = None
+    owner: Optional[str] = None
     schemaRef: Optional[str] = None
 
 
@@ -102,7 +114,15 @@ class DatasetResponse(BaseModel):
 
 
 class DatasetVersionCreateRequest(BaseModel):
-    storageRef: str = Field(..., description="Local file path or existing S3 URI to the dataset")
+    storageRef: str = Field(
+        ...,
+        description=(
+            "Local file path, S3 URI (s3://bucket/key), "
+            "Secrets Manager secret name ('secret://mlops/breast-dataset'), "
+            "or full ARN ('arn:aws:secretsmanager:...'). "
+            "Secret must contain {bucket, prefix, region}."
+        ),
+    )
     schemaRef: Optional[str] = Field(None, description="Schema reference or inline schema JSON")
     lineage: Optional[Dict[str, Any]] = Field(
         None, description="Provenance: {parentVersions: [], transformRef: str}"
@@ -115,8 +135,11 @@ class DatasetVersionResponse(BaseModel):
     versionId: str
     datasetId: str
     storageRef: str
+    localRef: Optional[str] = None
     trainStorageRef: Optional[str] = None
     testStorageRef: Optional[str] = None
+    trainLocalRef: Optional[str] = None
+    testLocalRef: Optional[str] = None
     digest: Optional[str] = None
     schemaRef: Optional[str] = None
     lineage: Optional[Dict[str, Any]] = None
@@ -194,28 +217,48 @@ class LabelRequest(BaseModel):
 
 
 class LabelResponse(BaseModel):
-    labeledDatasetVersionId: str
+    labeledDatasetId: str
+    labeledDatasetVersionId: str  # full reference: "{datasetId}/{versionId}"
     storageRef: str
     labelQualityReportRef: str
 
 
+class FeatureDefinition(BaseModel):
+    name: str = Field(..., description="Output column name")
+    expression: Optional[str] = Field(None, description="pandas-eval expression using existing columns")
+    passthrough: Optional[str] = Field(None, description="Existing column to include as-is (alias)")
+
+
+class FeatureInlineSpec(BaseModel):
+    features: List[FeatureDefinition] = Field(default_factory=list)
+    includeColumns: List[str] = Field(default_factory=list, description="Raw columns to carry through (e.g. target)")
+
+
 class EngineerRequest(BaseModel):
     datasetVersion: str = Field(..., description="versionId of source dataset")
-    featureDefinitionsRef: Optional[str] = Field(None, description="Path to feature definitions file")
-    inlineSpec: Optional[Dict[str, Any]] = Field(
-        None, description="Inline spec: {features: [{name, expression}], entity_keys: []}"
-    )
-    entityKeys: List[str] = Field(default_factory=list, description="Entity key columns")
-    outputFeatureSetId: Optional[str] = Field(None, description="Target feature set ID")
+    inlineSpec: FeatureInlineSpec = Field(..., description="Feature engineering specification")
+    entityKeys: List[str] = Field(default_factory=list, description="Entity key columns (used for online serving)")
+    outputFeatureSetId: Optional[str] = Field(None, description="Target feature set ID (creates new if omitted)")
     ticketId: Optional[str] = None
 
 
+class FeatureStats(BaseModel):
+    dtype: str
+    nullCount: int
+    min: Optional[float] = None
+    max: Optional[float] = None
+    mean: Optional[float] = None
+    expression: Optional[str] = None
+
+
 class EngineerResponse(BaseModel):
-    featureSetVersionId: str
-    featureSetId: str
-    storageRef: str
-    featureSchema: Dict[str, Any]
-    computationReportRef: str
+    featureSetVersionId: Optional[str] = None
+    featureSetId: Optional[str] = None
+    storageRef: Optional[str] = None  # S3 URI — populated after VersionFeature
+    localRef: Optional[str] = None    # local CSV path — pass to POST /features/{id}/versions storageRef
+    featureSchema: Dict[str, FeatureStats]
+    failedFeatures: List[Dict[str, str]] = Field(default_factory=list)
+    computationReportRef: Optional[str] = None
 
 
 # ─────────────────────────────────────────────
@@ -247,6 +290,13 @@ class FeatureVersionCreateRequest(BaseModel):
     storageRef: str = Field(..., description="Local file path or S3 URI to feature table")
     schemaRef: Optional[str] = Field(None, description="Feature schema reference")
     computedFrom: Optional[str] = Field(None, description="Source datasetVersionId")
+    entityKeys: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Column names that uniquely identify a row, e.g. ['patient_id']. "
+            "Required to materialize the feature table into the Redis online store."
+        ),
+    )
     ticketId: Optional[str] = None
 
 
@@ -254,10 +304,16 @@ class FeatureVersionResponse(BaseModel):
     versionId: str
     featureSetId: str
     storageRef: str
+    localRef: Optional[str] = None
+    trainLocalRef: Optional[str] = None
+    testLocalRef: Optional[str] = None
+    trainStorageRef: Optional[str] = None
+    testStorageRef: Optional[str] = None
     schemaRef: Optional[str] = None
     computedFrom: Optional[str] = None
     digest: Optional[str] = None
     dvcTracked: bool = False
+    entityKeys: List[str] = []
     createdAt: str
 
 
@@ -266,8 +322,47 @@ class OnlineFeatureGetResponse(BaseModel):
     versionId: Optional[str] = None
     entityKeyValues: Dict[str, Any]
     features: Dict[str, Any]
+    storeUsed: str = "miss"  # "redis" | "miss"
     asOfTime: Optional[str] = None
     retrievalMetadata: Dict[str, Any] = {}
+
+
+class OnlineFeatureStoreRequest(BaseModel):
+    featureSetId: str = Field(..., description="Feature set ID")
+    versionId: str = Field(..., description="Feature version ID")
+    entityKeyValues: Dict[str, Any] = Field(
+        ..., description="Entity key-value pairs identifying this entity, e.g. {\"patient_id\": \"42\"}"
+    )
+    features: Dict[str, Any] = Field(
+        ..., description="Feature name → value map to store in Redis"
+    )
+    overwrite: bool = Field(
+        True, description="If False, skip write when a key already exists"
+    )
+
+
+class OnlineFeatureStoreResponse(BaseModel):
+    featureSetId: str
+    versionId: str
+    entityKeyValues: Dict[str, Any]
+    stored: bool
+    message: str
+
+
+class OnlineMaterializeRequest(BaseModel):
+    featureSetId: str = Field(..., description="Feature set ID")
+    versionId: str = Field(..., description="Feature version ID")
+    localRef: str = Field(..., description="Local CSV path from POST /features/{id}/versions response")
+    entityKeys: List[str] = Field(..., description="Column(s) that uniquely identify a row, e.g. ['sample_id']")
+
+
+class OnlineMaterializeResponse(BaseModel):
+    featureSetId: str
+    versionId: str
+    materialized: int
+    errors: int
+    skippedMissingKeys: int
+    message: str
 
 
 class OfflineFeatureGetResponse(BaseModel):

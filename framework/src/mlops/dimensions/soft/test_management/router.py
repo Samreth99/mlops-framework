@@ -41,12 +41,19 @@ class CICallbackRequest(BaseModel):
     coverageRef: Optional[str] = None
 
 
-def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
+def _dispatch_github_actions(
+    test_run_id: str,
+    test_suite_ref: str,
+    image_ref: Optional[str] = None,
+) -> None:
     """
     Auto-trigger GitHub Actions via workflow_dispatch on ks-software branch.
     Runs as a background task — does not block the API response.
+    Passes imageRef so the workflow can start the API as a Docker container.
     Marks the test run as FAILED if GitHub is not configured or dispatch fails.
     """
+    import logging
+
     workflow_file = SUITE_TO_WORKFLOW.get(test_suite_ref)
     token         = settings.github_token
     owner         = settings.github_repo_owner
@@ -72,19 +79,18 @@ def _dispatch_github_actions(test_run_id: str, test_suite_ref: str) -> None:
                     "testRunId":   test_run_id,
                     "callbackUrl": callback_url,
                     "apiBaseUrl":  public_url,
+                    "imageRef":    image_ref or "",
                 },
             },
             timeout=10.0,
         )
         if resp.status_code != 204:
-            import logging
             logging.error(
                 "[CI Dispatch] GitHub returned %s: %s",
-                resp.status_code, resp.text
+                resp.status_code, resp.text,
             )
             svc.update_test_run(test_run_id, status="FAILED", passed=False)
     except Exception as exc:
-        import logging
         logging.error("[CI Dispatch] Exception: %s", exc)
         svc.update_test_run(test_run_id, status="FAILED", passed=False)
 
@@ -126,10 +132,18 @@ def trigger_test(req: TestTriggerRequest, background_tasks: BackgroundTasks):
             build_id=req.buildId,
             env_ref=req.envRef,
         )
+        # Resolve the Docker image ref from the linked package's storageRef
+        image_ref: Optional[str] = None
+        pkg_id = result.get("packageId") or req.packageId
+        if pkg_id:
+            pkg = svc.get_package(pkg_id)
+            if pkg:
+                image_ref = pkg.get("storageRef")
         background_tasks.add_task(
             _dispatch_github_actions,
             result["testRunId"],
             req.testSuiteRef,
+            image_ref,
         )
         return TestRunResponse(**result)
     except Exception as e:

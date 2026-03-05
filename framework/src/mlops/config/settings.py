@@ -14,7 +14,8 @@ def _load_dotenv(env_path: Path) -> None:
             if not line or line.startswith("#"):
                 continue
             key, _, value = line.partition("=")
-            key, value = key.strip(), value.strip()
+            key = key.strip()
+            value = value.split("#")[0].strip()  # strip inline comments
             if key and key not in os.environ:
                 os.environ[key] = value
 
@@ -57,6 +58,23 @@ class Settings:
     )
     public_api_url: str = field(
         default_factory=lambda: os.getenv("PUBLIC_API_URL", "http://localhost:8000")
+    )
+
+    # ── Redis ──
+    redis_host: str = field(
+        default_factory=lambda: os.getenv("REDIS_HOST", "localhost")
+    )
+    redis_port: int = field(
+        default_factory=lambda: int(os.getenv("REDIS_PORT", "6379"))
+    )
+    redis_password: str = field(
+        default_factory=lambda: os.getenv("REDIS_PASSWORD", "").split("#")[0].strip()
+    )
+    redis_db: int = field(
+        default_factory=lambda: int(os.getenv("REDIS_DB", "0"))
+    )
+    redis_feature_ttl: int = field(
+        default_factory=lambda: int(os.getenv("REDIS_FEATURE_TTL", "0").split("#")[0].strip())
     )
 
     # ── AWS Configuration ──

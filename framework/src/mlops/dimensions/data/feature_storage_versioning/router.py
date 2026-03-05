@@ -4,16 +4,25 @@ Feature Storage & Versioning router — MLOps
 Implements:
   POST   /data/features                                      – Register a logical feature set
   GET    /data/features                                      – List feature sets
+  GET    /data/features/online/get                           – Retrieve online features by entity keys (Redis)
+  POST   /data/features/online/store                         – Write a single entity's features to Redis
+  GET    /data/features/offline/get                          – Retrieve offline feature table ref (S3)
   GET    /data/features/{featureSetId}                       – Feature set metadata
   POST   /data/features/{featureSetId}                       – Update feature set metadata
   POST   /data/features/{featureSetId}/versions              – Create/publish a feature version (S3 + DVC)
   GET    /data/features/{featureSetId}/versions              – List feature versions
   GET    /data/features/{featureSetId}/versions/{versionId}  – Fetch a specific version pointer
-  GET    /data/features/online/get                           – Retrieve online features by entity keys
-  GET    /data/features/offline/get                          – Retrieve offline feature table ref
+
+Online vs Offline store:
+  Online  → Redis hash store (O(1) key lookup, sub-millisecond serving).
+             Populated via POST /features/online/store after a prediction is made for a new entity.
+             On return visits the entity's pre-computed features are served directly from Redis.
+  Offline → S3 CSV/Parquet URI returned for bulk training use.
+             No data is loaded into memory; only schema and row count are derived.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -27,21 +36,28 @@ from ..schemas import (
     FeatureVersionResponse,
     OfflineFeatureGetResponse,
     OnlineFeatureGetResponse,
+    OnlineFeatureStoreRequest,
+    OnlineFeatureStoreResponse,
+    OnlineMaterializeRequest,
+    OnlineMaterializeResponse,
 )
 from .. import s3_service as svc
+from .. import redis_service as redis_svc
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 # ─────────────────────────────────────────────
-# Note: /online/get and /offline/get must be
+# Note: /online/get and /offline/get MUST be
 # declared BEFORE /{featureSetId} so FastAPI
-# does not try to match "online" as a featureSetId
+# does not match "online" / "offline" as a
+# featureSetId path parameter.
 # ─────────────────────────────────────────────
 @router.get(
     "/features/online/get",
     response_model=OnlineFeatureGetResponse,
-    summary="Retrieve online features for serving by entity keys",
+    summary="Retrieve online features for serving by entity keys (Redis)",
 )
 def get_online_features(
     featureSetId: str = Query(..., description="Feature set ID"),
@@ -50,9 +66,13 @@ def get_online_features(
     asOfTime: Optional[str] = Query(None, description="ISO timestamp for point-in-time lookup"),
 ):
     """
-    Return feature vectors for given entity key values from the registered feature set.
+    Serve pre-computed feature vectors for real-time inference (returning entities only).
 
-    **Returns:** feature vectors + retrieval metadata
+    Looks up `fsv:{featureSetId}:{versionId}:{entityKeyValues}` in Redis.
+    Returns `features: {}` with `storeUsed: "miss"` when the entity is not found —
+    this means it is a new entity whose features have not been stored yet.
+
+    Use `POST /features/online/store` to write features after a first-visit prediction.
     """
     import json
 
@@ -83,37 +103,35 @@ def get_online_features(
     target_version: Optional[Dict[str, Any]] = None
     if versionId:
         target_version = svc.get_feature_version(featureSetId, versionId)
+        if not target_version:
+            raise HTTPException(
+                status_code=404,
+                detail={"error": {"code": "version_not_found", "message": f"Version '{versionId}' not found"}},
+            )
     elif versions:
         target_version = sorted(versions, key=lambda v: v["createdAt"], reverse=True)[0]
 
     features: Dict[str, Any] = {}
-    if target_version:
-        storage_ref = target_version.get("storageRef", "")
-        try:
-            from pathlib import Path
-            import pandas as pd
+    store_used = "miss"
 
-            local_ref = target_version.get("localRef") or storage_ref
-            if Path(local_ref).exists():
-                df = pd.read_csv(local_ref)
-                # Filter by entity key values
-                mask = None
-                for key, val in entity_kv.items():
-                    if key in df.columns:
-                        m = df[key].astype(str) == str(val)
-                        mask = m if mask is None else (mask & m)
-                if mask is not None:
-                    row = df[mask].head(1)
-                    if not row.empty:
-                        features = row.iloc[0].to_dict()
-        except Exception:
-            pass
+    if target_version:
+        resolved_version_id = target_version["versionId"]
+        redis_result = redis_svc.get_features(featureSetId, resolved_version_id, entity_kv)
+        if redis_result is not None:
+            features = redis_result
+            store_used = "redis"
+        else:
+            logger.debug(
+                "Redis miss for fs=%s v=%s entity=%s",
+                featureSetId, resolved_version_id, entity_kv,
+            )
 
     return OnlineFeatureGetResponse(
         featureSetId=featureSetId,
         versionId=target_version["versionId"] if target_version else versionId,
         entityKeyValues=entity_kv,
         features=features,
+        storeUsed=store_used,
         asOfTime=asOfTime,
         retrievalMetadata={
             "storageRef": target_version.get("storageRef") if target_version else None,
@@ -122,10 +140,125 @@ def get_online_features(
     )
 
 
+@router.post(
+    "/features/online/store",
+    response_model=OnlineFeatureStoreResponse,
+    summary="Store a single entity's features in Redis (write-on-first-visit)",
+)
+def store_online_features(req: OnlineFeatureStoreRequest):
+    """
+    Write a single entity's pre-computed features into the Redis online store.
+
+    **When to call this:**
+    After a model makes a first-visit prediction for a new entity (e.g. a new patient),
+    call this endpoint to cache that entity's features. On subsequent visits,
+    `GET /features/online/get` will return the cached features in O(1) without
+    recomputing them.
+
+    **`overwrite: false`** skips the write if the entity's key already exists in Redis,
+    preserving the original features from the first visit.
+    """
+    make_log(
+        area="Data",
+        component="Feature Storage & Versioning",
+        endpoint="/data/features/online/store",
+        meta={"featureSetId": req.featureSetId, "versionId": req.versionId},
+    )
+
+    fs = svc.get_feature_set(req.featureSetId)
+    if not fs:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "feature_set_not_found", "message": f"Feature set '{req.featureSetId}' not found"}},
+        )
+
+    version = svc.get_feature_version(req.featureSetId, req.versionId)
+    if not version:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "version_not_found", "message": f"Version '{req.versionId}' not found"}},
+        )
+
+    stored = redis_svc.store_features(
+        fs_id=req.featureSetId,
+        version_id=req.versionId,
+        entity_kv=req.entityKeyValues,
+        features=req.features,
+        overwrite=req.overwrite,
+    )
+
+    if stored:
+        msg = "Features stored in Redis online store."
+    elif req.overwrite:
+        msg = "Redis unavailable — features could not be stored."
+    else:
+        msg = "Key already exists in Redis; write skipped (overwrite=false)."
+
+    return OnlineFeatureStoreResponse(
+        featureSetId=req.featureSetId,
+        versionId=req.versionId,
+        entityKeyValues=req.entityKeyValues,
+        stored=stored,
+        message=msg,
+    )
+
+
+@router.post(
+    "/features/online/materialize",
+    response_model=OnlineMaterializeResponse,
+    summary="Bulk load entire feature CSV into Redis online store",
+)
+def materialize_online_features(req: OnlineMaterializeRequest):
+    """
+    Bulk materialize a full feature CSV into the Redis online store.
+
+    Called once after POST /features/{id}/versions during pipeline initialization.
+    Loads every row from the local CSV into Redis in batches of 500.
+
+    Use POST /features/online/store for single-entity writes at inference time.
+    """
+    make_log(
+        area="Data",
+        component="Feature Storage & Versioning",
+        endpoint="/data/features/online/materialize",
+        meta={"featureSetId": req.featureSetId, "versionId": req.versionId, "localRef": req.localRef},
+    )
+
+    fs = svc.get_feature_set(req.featureSetId)
+    if not fs:
+        raise HTTPException(status_code=404, detail={"error": {"code": "feature_set_not_found", "message": f"Feature set '{req.featureSetId}' not found"}})
+
+    target = svc.get_feature_version(req.featureSetId, req.versionId)
+    if not target:
+        raise HTTPException(status_code=404, detail={"error": {"code": "version_not_found", "message": f"Version '{req.versionId}' not found"}})
+
+    if not redis_svc.is_redis_available():
+        raise HTTPException(status_code=503, detail={"error": {"code": "redis_unavailable", "message": "Redis is not reachable"}})
+
+    try:
+        result = redis_svc.materialize_to_redis(
+            csv_path=req.localRef,
+            fs_id=req.featureSetId,
+            version_id=req.versionId,
+            entity_keys=list(req.entityKeys),
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail={"error": {"code": "materialize_error", "message": str(exc)}})
+
+    return OnlineMaterializeResponse(
+        featureSetId=req.featureSetId,
+        versionId=req.versionId,
+        materialized=result["materialized"],
+        errors=result["errors"],
+        skippedMissingKeys=result["skipped_missing_keys"],
+        message=f"Materialized {result['materialized']} rows into Redis. Errors: {result['errors']}.",
+    )
+
+
 @router.get(
     "/features/offline/get",
     response_model=OfflineFeatureGetResponse,
-    summary="Retrieve offline feature table ref for training",
+    summary="Retrieve offline feature table ref for training (S3)",
 )
 def get_offline_features(
     featureSetId: str = Query(..., description="Feature set ID"),
@@ -135,9 +268,11 @@ def get_offline_features(
     joinConfig: Optional[str] = Query(None, description="JSON-encoded join configuration"),
 ):
     """
-    Return the offline feature table reference (S3 URI) for training use.
+    Return the offline feature table S3 URI for training pipelines.
 
-    **Returns:** offline feature table ref + schema
+    Schema and row count are derived without loading the full file into memory.
+
+    **Returns:** S3 storageRef + column schema + row count
     """
     make_log(
         area="Data",
@@ -157,6 +292,11 @@ def get_offline_features(
     target_version: Optional[Dict[str, Any]] = None
     if versionId:
         target_version = svc.get_feature_version(featureSetId, versionId)
+        if not target_version:
+            raise HTTPException(
+                status_code=404,
+                detail={"error": {"code": "version_not_found", "message": f"Version '{versionId}' not found"}},
+            )
     elif versions:
         target_version = sorted(versions, key=lambda v: v["createdAt"], reverse=True)[0]
 
@@ -168,17 +308,20 @@ def get_offline_features(
 
     schema: Dict[str, Any] = {}
     row_count: Optional[int] = None
+    local_ref = target_version.get("localRef") or target_version.get("storageRef", "")
     try:
         from pathlib import Path
         import pandas as pd
 
-        local_ref = target_version.get("localRef") or target_version.get("storageRef", "")
         if Path(local_ref).exists():
-            df = pd.read_csv(local_ref)
-            schema = {c: str(t) for c, t in df.dtypes.items()}
-            row_count = len(df)
-    except Exception:
-        pass
+            first_chunk = next(pd.read_csv(local_ref, chunksize=1))
+            schema = {c: str(t) for c, t in first_chunk.dtypes.items()}
+            with open(local_ref, "rb") as fh:
+                row_count = sum(1 for _ in fh) - 1  # subtract header line
+    except FileNotFoundError as exc:
+        logger.warning("Offline feature CSV not found for v=%s: %s", target_version.get("versionId"), exc)
+    except Exception as exc:
+        logger.warning("Failed to read offline feature schema for v=%s: %s", target_version.get("versionId"), exc)
 
     return OfflineFeatureGetResponse(
         featureSetId=featureSetId,
@@ -284,14 +427,19 @@ def update_feature_set(featureSetId: str, req: FeatureSetUpdateRequest):
 @router.post(
     "/features/{featureSetId}/versions",
     response_model=FeatureVersionResponse,
-    summary="Create / publish a feature version (S3 upload + DVC)",
+    summary="Create / publish a feature version (S3 + DVC)",
 )
 def create_feature_version(featureSetId: str, req: FeatureVersionCreateRequest):
     """
     Upload feature table to S3 and track with DVC.
 
-    **Inputs:** storageRef (local path or S3 URI), schemaRef?, computedFrom (datasetVersionId)?, ticketId?
-    **Returns:** versionId, digest/checksum, storageRef (S3 URI)
+    **Inputs:**
+    - `storageRef` — local CSV path or S3 URI
+    - `entityKeys` — column names that identify each entity (e.g. `["patient_id"]`).
+      Stored as metadata; used by `POST /features/online/store` at serving time.
+    - `schemaRef`, `computedFrom`, `ticketId` — optional metadata
+
+    **Returns:** versionId, digest, storageRef, entityKeys
     """
     make_log(
         area="Data",
@@ -305,9 +453,10 @@ def create_feature_version(featureSetId: str, req: FeatureVersionCreateRequest):
             storage_ref=req.storageRef,
             schema_ref=req.schemaRef,
             computed_from=req.computedFrom,
+            entity_keys=req.entityKeys or None,
             ticket_id=req.ticketId,
         )
-    except ValueError as exc:
+    except LookupError as exc:
         raise HTTPException(
             status_code=404,
             detail={"error": {"code": "feature_set_not_found", "message": str(exc)}},
@@ -321,10 +470,16 @@ def create_feature_version(featureSetId: str, req: FeatureVersionCreateRequest):
         versionId=version["versionId"],
         featureSetId=version["featureSetId"],
         storageRef=version["storageRef"],
+        localRef=version.get("localRef"),
+        trainLocalRef=version.get("trainLocalRef"),
+        testLocalRef=version.get("testLocalRef"),
+        trainStorageRef=version.get("trainStorageRef"),
+        testStorageRef=version.get("testStorageRef"),
         schemaRef=version.get("schemaRef"),
         computedFrom=version.get("computedFrom"),
         digest=version.get("digest"),
         dvcTracked=version.get("dvcTracked", False),
+        entityKeys=version.get("entityKeys", []),
         createdAt=version["createdAt"],
     )
 
@@ -346,10 +501,16 @@ def list_feature_versions(featureSetId: str):
             versionId=v["versionId"],
             featureSetId=v["featureSetId"],
             storageRef=v["storageRef"],
+            localRef=v.get("localRef"),
+            trainLocalRef=v.get("trainLocalRef"),
+            testLocalRef=v.get("testLocalRef"),
+            trainStorageRef=v.get("trainStorageRef"),
+            testStorageRef=v.get("testStorageRef"),
             schemaRef=v.get("schemaRef"),
             computedFrom=v.get("computedFrom"),
             digest=v.get("digest"),
             dvcTracked=v.get("dvcTracked", False),
+            entityKeys=v.get("entityKeys", []),
             createdAt=v["createdAt"],
         )
         for v in svc.list_feature_versions(featureSetId)
@@ -378,9 +539,15 @@ def get_feature_version(featureSetId: str, versionId: str):
         versionId=version["versionId"],
         featureSetId=version["featureSetId"],
         storageRef=version["storageRef"],
+        localRef=version.get("localRef"),
+        trainLocalRef=version.get("trainLocalRef"),
+        testLocalRef=version.get("testLocalRef"),
+        trainStorageRef=version.get("trainStorageRef"),
+        testStorageRef=version.get("testStorageRef"),
         schemaRef=version.get("schemaRef"),
         computedFrom=version.get("computedFrom"),
         digest=version.get("digest"),
         dvcTracked=version.get("dvcTracked", False),
+        entityKeys=version.get("entityKeys", []),
         createdAt=version["createdAt"],
     )

@@ -112,8 +112,8 @@ def update_dataset(datasetId: str, req: DatasetUpdateRequest):
     update_kwargs: dict = {}
     if req.description is not None:
         update_kwargs["description"] = req.description
-    if req.owners:
-        update_kwargs["owner"] = ",".join(req.owners)
+    if req.owner is not None:
+        update_kwargs["owner"] = req.owner
     if req.schemaRef is not None:
         update_kwargs["schemaRef"] = req.schemaRef
 
@@ -156,7 +156,7 @@ def create_dataset_version(datasetId: str, req: DatasetVersionCreateRequest):
             stats=req.stats,
             ticket_id=req.ticketId,
         )
-    except ValueError as exc:
+    except LookupError as exc:
         raise HTTPException(
             status_code=404,
             detail={"error": {"code": "dataset_not_found", "message": str(exc)}},
@@ -170,8 +170,11 @@ def create_dataset_version(datasetId: str, req: DatasetVersionCreateRequest):
         versionId=version["versionId"],
         datasetId=version["datasetId"],
         storageRef=version["storageRef"],
+        localRef=version.get("localRef"),
         trainStorageRef=version.get("trainStorageRef"),
         testStorageRef=version.get("testStorageRef"),
+        trainLocalRef=version.get("trainLocalRef"),
+        testLocalRef=version.get("testLocalRef"),
         digest=version.get("digest"),
         schemaRef=version.get("schemaRef"),
         lineage=version.get("lineage"),
@@ -239,8 +242,11 @@ def get_dataset_version(datasetId: str, versionId: str):
         versionId=version["versionId"],
         datasetId=version["datasetId"],
         storageRef=version["storageRef"],
+        localRef=version.get("localRef"),
         trainStorageRef=version.get("trainStorageRef"),
         testStorageRef=version.get("testStorageRef"),
+        trainLocalRef=version.get("trainLocalRef"),
+        testLocalRef=version.get("testLocalRef"),
         digest=version.get("digest"),
         schemaRef=version.get("schemaRef"),
         lineage=version.get("lineage"),

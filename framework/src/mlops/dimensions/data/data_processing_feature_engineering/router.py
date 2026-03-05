@@ -4,16 +4,28 @@ Data Processing & Feature Engineering router — MLOps
 Implements:
   POST   /data/preprocess   – Execute preprocessing pipeline → new dataset version (S3 + DVC)
   POST   /data/validate     – Run data validation checks
-  POST   /data/analyze      – Profiling / EDA summaries
+  POST   /data/analyze      – Profiling / EDA summaries + drift baseline
   POST   /data/label        – Labeling steps producing labeled dataset versions
   POST   /data/engineer     – Build feature sets from datasets and publish versions
+
+Production fixes:
+  - Temp files wrapped in try/finally (no leak on exception)
+  - Registry loaded via mtime-based cache (no full scan per request)
+  - df.eval() expressions validated with ast before execution (injection guard)
+  - Silent eval() failures now log a warning
+  - Drift baseline raises 500 on S3 upload failure (never returns deleted path)
 """
 from __future__ import annotations
 
+import ast
+import json
+import logging
 import os
 import tempfile
+import threading
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Generator, Iterator, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException
@@ -33,6 +45,7 @@ from ..schemas import (
 )
 from .. import s3_service as svc
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -40,28 +53,94 @@ def _short_id() -> str:
     return str(uuid4())[:8]
 
 
+# ── Mtime-based registry cache (issue #25) ──────────────────────────
+_registry_cache: Dict[str, Any] = {}
+_registry_cache_mtime: float = 0.0
+_registry_cache_lock = threading.Lock()
+_REGISTRY_FILE = Path(__file__).parent.parent / "data_registry.json"
+_DATA_STORAGE = Path(__file__).parent.parent / "data-storage"
+_DATA_STORAGE.mkdir(exist_ok=True)
+
+
+def _get_registry() -> Dict[str, Any]:
+    global _registry_cache, _registry_cache_mtime
+    with _registry_cache_lock:
+        try:
+            mtime = _REGISTRY_FILE.stat().st_mtime
+            if mtime != _registry_cache_mtime:
+                with open(_REGISTRY_FILE, encoding="utf-8") as f:
+                    _registry_cache = json.load(f)
+                _registry_cache_mtime = mtime
+        except Exception as exc:
+            logger.warning("Failed to load registry cache: %s", exc)
+        return _registry_cache
+
+
+# ── Temp CSV helper (issue #24 / #27) ───────────────────────────────
+@contextmanager
+def _temp_csv() -> Generator[str, None, None]:
+    """Context manager that yields a temp CSV path and deletes it on exit."""
+    tmp_path: Optional[str] = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
+            tmp_path = tmp.name
+        yield tmp_path
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+
+# ── Persistent CSV helper ────────────────────────────────────────────
+@contextmanager
+def _persistent_csv(prefix: str = "proc") -> Generator[str, None, None]:
+    """
+    Save to data-storage/ so localRef remains valid after the response.
+    Deletes the file only on exception (keeps it on success).
+    """
+    path = _DATA_STORAGE / f"{prefix}_{uuid4().hex[:8]}.csv"
+    try:
+        yield str(path)
+    except Exception:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
+
+
+# ── Expression safety guard (issue #29) ─────────────────────────────
+def _is_safe_expression(expr: str) -> bool:
+    """
+    Validate a pandas eval() expression using the AST.
+    Rejects expressions containing function calls, imports, or attribute access
+    that could be used for code injection.
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Call, ast.Import, ast.ImportFrom, ast.Attribute)):
+                return False
+        return True
+    except SyntaxError:
+        return False
+
+
+# ── Version file resolver ────────────────────────────────────────────
 def _resolve_version_file(version_ref: str) -> str:
     """
-    Resolve a dataset version reference to a readable file path.
+    Resolve a dataset version reference to a readable local file path.
 
-    Accepts two formats:
-      - "{datasetId}/v{n}"  e.g. "0e0e2043/v1"  (unambiguous, preferred)
-      - "v{n}"              e.g. "v1"             (finds the first dataset that
-                                                    has this versionId — OK when
-                                                    only one dataset exists)
-    Falls back to the storageRef when no local file is present.
+    Accepts:
+      - "{datasetId}/{versionId}"  e.g. "22d278f1/v1"  (preferred)
+      - "v{n}"                     bare versionId (scans all datasets)
+    Falls back to storageRef when no local file is present.
     """
-    import json
-    registry_file = Path(__file__).parent.parent / "data_registry.json"
-    if not registry_file.exists():
-        return version_ref
-
-    with open(registry_file, encoding="utf-8") as f:
-        reg = json.load(f)
-
+    reg = _get_registry()
     all_ds_versions: dict = reg.get("dataset_versions", {})
 
-    # ── Format 1: "datasetId/versionId" ─────────────────────────────
     if "/" in version_ref:
         dataset_id, version_id = version_ref.split("/", 1)
         ver = all_ds_versions.get(dataset_id, {}).get(version_id)
@@ -72,8 +151,7 @@ def _resolve_version_file(version_ref: str) -> str:
             return ver.get("storageRef", version_ref)
         return version_ref
 
-    # ── Format 2: bare "versionId" — scan all datasets ───────────────
-    for version_id_key, ds_versions in all_ds_versions.items():
+    for ds_versions in all_ds_versions.values():
         if version_ref in ds_versions:
             ver = ds_versions[version_ref]
             local_ref = ver.get("localRef", "")
@@ -112,11 +190,14 @@ def preprocess(req: PreprocessRequest):
         input_path = _resolve_version_file(req.inputDatasetVersion)
         df = pd.read_csv(input_path)
 
-        # Build transform spec
         spec: Dict[str, Any] = req.inlineSpec or {}
 
         if spec.get("drop_na", True):
             df = df.dropna().reset_index(drop=True)
+
+        # Add a stable row-level entity key if requested (enables online feature serving)
+        if spec.get("add_sample_id", False) and "sample_id" not in df.columns:
+            df.insert(0, "sample_id", range(len(df)))
 
         fill_na = spec.get("fillna", {})
         if fill_na:
@@ -134,12 +215,6 @@ def preprocess(req: PreprocessRequest):
         if drop_cols:
             df = df.drop(columns=[c for c in drop_cols if c in df.columns])
 
-        # Write processed file to a temp location
-        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
-            tmp_path = tmp.name
-        df.to_csv(tmp_path, index=False)
-
-        # Determine output dataset
         output_dataset_id = req.outputDatasetId
         if not output_dataset_id:
             ds = svc.create_dataset(
@@ -151,16 +226,16 @@ def preprocess(req: PreprocessRequest):
             )
             output_dataset_id = ds["datasetId"]
 
-        version = svc.create_dataset_version(
-            dataset_id=output_dataset_id,
-            storage_ref=tmp_path,
-            schema_ref=None,
-            lineage={"parentVersions": [req.inputDatasetVersion], "transformRef": req.transformSpecRef},
-            stats={"rows": len(df), "columns": len(df.columns)},
-            ticket_id=req.ticketId,
-        )
-
-        os.unlink(tmp_path)
+        with _persistent_csv(prefix=f"preprocess_{output_dataset_id}") as tmp_path:
+            df.to_csv(tmp_path, index=False)
+            version = svc.create_dataset_version(
+                dataset_id=output_dataset_id,
+                storage_ref=tmp_path,
+                schema_ref=None,
+                lineage={"parentVersions": [req.inputDatasetVersion], "transformRef": req.transformSpecRef},
+                stats={"rows": len(df), "columns": len(df.columns)},
+                ticket_id=req.ticketId,
+            )
 
         event_ref = f"events/preprocess/{version['versionId']}"
         report_ref = f"reports/preprocess/{version['versionId']}"
@@ -171,6 +246,16 @@ def preprocess(req: PreprocessRequest):
             storageRef=version["storageRef"],
             preprocessingReportRef=report_ref,
             eventRef=event_ref,
+        )
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "version_not_found", "message": str(exc)}},
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "file_not_found", "message": str(exc)}},
         )
     except Exception as exc:
         raise HTTPException(
@@ -258,6 +343,11 @@ def validate(req: ValidateRequest):
             violations=violations,
             summary=f"{len(violations)} violation(s) found" if violations else "All checks passed",
         )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "file_not_found", "message": str(exc)}},
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -276,9 +366,16 @@ def validate(req: ValidateRequest):
 def analyze(req: AnalyzeRequest):
     """
     Profile a dataset version and return descriptive statistics.
+    When profileConfig.create_drift_baseline is true, saves an Evidently-compatible
+    baseline JSON to S3 — the returned driftBaselineRef is used by
+    POST /ops/monitoring/rules for drift detection.
 
-    **Inputs:** datasetVersion, profileConfig?, ticketId?
-    **Returns:** stats summaries, drift baseline refs?, report ref
+    **profileConfig keys:**
+      - create_drift_baseline: bool — save baseline to S3
+      - sample_size: int
+      - include_correlations: bool
+
+    **Returns:** stats summaries, driftBaselineRef (S3 URI), reportRef
     """
     make_log(
         area="Data",
@@ -298,11 +395,10 @@ def analyze(req: AnalyzeRequest):
             df = df.sample(n=int(sample_size), random_state=42)
 
         desc = df.describe(include="all").to_dict()
-        # Make it JSON-safe (replace NaN with None)
         safe_desc: Dict[str, Any] = {}
-        for col, stats in desc.items():
+        for col, col_stats in desc.items():
             safe_desc[col] = {k: (None if (isinstance(v, float) and v != v) else v)
-                               for k, v in stats.items()}
+                               for k, v in col_stats.items()}
 
         stats: Dict[str, Any] = {
             "rows": len(df),
@@ -319,7 +415,51 @@ def analyze(req: AnalyzeRequest):
                 stats["correlations"] = num_df.corr().to_dict()
 
         report_ref = f"reports/analyze/{req.datasetVersion}/{_short_id()}"
-        drift_ref = f"baselines/drift/{req.datasetVersion}" if cfg.get("create_drift_baseline") else None
+        drift_ref: Optional[str] = None
+
+        # ── Save drift baseline to S3 (issue #28: raise on failure, never return deleted path)
+        if cfg.get("create_drift_baseline"):
+            # Look up storageRef / localRef from registry
+            reg = _get_registry()
+            all_versions = reg.get("dataset_versions", {})
+            ver_rec: Dict[str, Any] = {}
+            if "/" in req.datasetVersion:
+                ds_id, ver_id = req.datasetVersion.split("/", 1)
+                ver_rec = all_versions.get(ds_id, {}).get(ver_id, {})
+            else:
+                for ds_versions in all_versions.values():
+                    if req.datasetVersion in ds_versions:
+                        ver_rec = ds_versions[req.datasetVersion]
+                        break
+
+            baseline_meta = {
+                "datasetVersion": req.datasetVersion,
+                "numericalColumns": df.select_dtypes(include="number").columns.tolist(),
+                "categoricalColumns": df.select_dtypes(include="object").columns.tolist(),
+                "localRef": ver_rec.get("localRef", input_path),
+                "storageRef": ver_rec.get("storageRef", input_path),
+                "rowCount": len(df),
+                "createdAt": __import__("datetime").datetime.now(
+                    __import__("datetime").timezone.utc
+                ).isoformat(),
+            }
+
+            baseline_id = _short_id()
+            s3_key = f"baselines/drift/{req.datasetVersion.replace('/', '_')}/{baseline_id}.json"
+
+            # Save locally to data-storage/ (persistent, never deleted)
+            local_baseline_path = _DATA_STORAGE / f"baseline_drift_{req.datasetVersion.replace('/', '_')}_{baseline_id}.json"
+            with open(local_baseline_path, "w", encoding="utf-8") as _f:
+                json.dump(baseline_meta, _f, indent=2)
+
+            try:
+                # Raise on S3 failure
+                drift_ref = svc.upload_file_to_s3(str(local_baseline_path), s3_key)
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail={"error": {"code": "baseline_upload_failed", "message": str(exc)}},
+                )
 
         return AnalyzeResponse(
             datasetVersion=req.datasetVersion,
@@ -327,6 +467,8 @@ def analyze(req: AnalyzeRequest):
             driftBaselineRef=drift_ref,
             reportRef=report_ref,
         )
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -365,11 +507,14 @@ def label(req: LabelRequest):
         label_map: Dict[str, Any] = req.labelSpec.get("label_map", {})
 
         if target_col and target_col in df.columns and label_map:
-            df[target_col] = df[target_col].map(label_map).fillna(df[target_col])
-
-        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
-            tmp_path = tmp.name
-        df.to_csv(tmp_path, index=False)
+            # Coerce map keys to match actual column dtype so int columns
+            # match string JSON keys (e.g. {"2": 0, "4": 1} maps int values 2, 4)
+            col_dtype = df[target_col].dtype
+            try:
+                coerced_map = {col_dtype.type(k): v for k, v in label_map.items()}
+            except (ValueError, TypeError):
+                coerced_map = label_map
+            df[target_col] = df[target_col].map(coerced_map).fillna(df[target_col])
 
         labeled_ds = svc.create_dataset(
             name=f"labeled_{req.inputDatasetVersion}",
@@ -378,21 +523,30 @@ def label(req: LabelRequest):
             description=f"Labeled version of {req.inputDatasetVersion}",
             schema_ref=None,
         )
-        version = svc.create_dataset_version(
-            dataset_id=labeled_ds["datasetId"],
-            storage_ref=tmp_path,
-            schema_ref=None,
-            lineage={"parentVersions": [req.inputDatasetVersion], "toolingRef": req.toolingRef},
-            stats={"rows": len(df), "labeled_column": target_col},
-            ticket_id=req.ticketId,
-        )
-        os.unlink(tmp_path)
 
-        report_ref = f"reports/label/{version['versionId']}"
+        with _persistent_csv(prefix=f"label_{labeled_ds['datasetId']}") as tmp_path:
+            df.to_csv(tmp_path, index=False)
+            version = svc.create_dataset_version(
+                dataset_id=labeled_ds["datasetId"],
+                storage_ref=tmp_path,
+                schema_ref=None,
+                lineage={"parentVersions": [req.inputDatasetVersion], "toolingRef": req.toolingRef},
+                stats={"rows": len(df), "labeled_column": target_col},
+                ticket_id=req.ticketId,
+            )
+
+        full_version_ref = f"{labeled_ds['datasetId']}/{version['versionId']}"
+        report_ref = f"reports/label/{full_version_ref}"
         return LabelResponse(
-            labeledDatasetVersionId=version["versionId"],
+            labeledDatasetId=labeled_ds["datasetId"],
+            labeledDatasetVersionId=full_version_ref,
             storageRef=version["storageRef"],
             labelQualityReportRef=report_ref,
+        )
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "version_not_found", "message": str(exc)}},
         )
     except Exception as exc:
         raise HTTPException(
@@ -416,6 +570,8 @@ def engineer(req: EngineerRequest):
 
     **Inputs:** datasetVersion, featureDefinitionsRef|inlineSpec, entityKeys, outputFeatureSetId?, ticketId?
     **Returns:** featureSetVersionId, featureSchema, computationReportRef
+
+    Feature expressions are validated with the AST before execution to prevent injection.
     """
     make_log(
         area="Data",
@@ -425,69 +581,99 @@ def engineer(req: EngineerRequest):
     )
     try:
         import pandas as pd
+        import numpy as np
 
         input_path = _resolve_version_file(req.datasetVersion)
         df = pd.read_csv(input_path)
 
-        spec: Dict[str, Any] = req.inlineSpec or {}
-        feature_defs = spec.get("features", [])
+        spec = req.inlineSpec
         feature_schema: Dict[str, Any] = {}
+        failed_features: list = []
 
-        # Select/compute features from spec
-        selected_cols = list(req.entityKeys)
-        for feat in feature_defs:
-            name = feat.get("name")
-            expr = feat.get("expression")
-            if name and expr:
+        # Start with entity keys + explicit passthrough columns
+        selected_cols: list = list(req.entityKeys)
+        for col in spec.includeColumns:
+            if col in df.columns and col not in selected_cols:
+                selected_cols.append(col)
+                feature_schema[col] = {
+                    "dtype": str(df[col].dtype),
+                    "nullCount": int(df[col].isnull().sum()),
+                    "min": float(df[col].min()) if pd.api.types.is_numeric_dtype(df[col]) else None,
+                    "max": float(df[col].max()) if pd.api.types.is_numeric_dtype(df[col]) else None,
+                    "mean": float(df[col].mean()) if pd.api.types.is_numeric_dtype(df[col]) else None,
+                }
+
+        for feat in spec.features:
+            name = feat.name
+            expr = feat.expression
+            passthrough = feat.passthrough
+
+            if expr:
+                if not _is_safe_expression(expr):
+                    logger.warning("Rejected unsafe feature expression '%s' for '%s'", expr, name)
+                    failed_features.append({"name": name, "reason": "unsafe_expression"})
+                    continue
                 try:
                     df[name] = df.eval(expr)
                     selected_cols.append(name)
-                    feature_schema[name] = {"expression": expr, "dtype": str(df[name].dtype)}
-                except Exception:
-                    pass
-            elif name and name in df.columns:
+                    feature_schema[name] = {
+                        "expression": expr,
+                        "dtype": str(df[name].dtype),
+                        "nullCount": int(df[name].isnull().sum()),
+                        "min": float(df[name].min()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                        "max": float(df[name].max()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                        "mean": float(df[name].mean()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                    }
+                except Exception as exc:
+                    logger.warning("Feature '%s' eval failed: %s", name, exc)
+                    failed_features.append({"name": name, "reason": str(exc)})
+
+            elif passthrough and passthrough in df.columns:
+                df[name] = df[passthrough]
                 selected_cols.append(name)
-                feature_schema[name] = {"dtype": str(df[name].dtype)}
+                feature_schema[name] = {
+                    "passthrough": passthrough,
+                    "dtype": str(df[name].dtype),
+                    "nullCount": int(df[name].isnull().sum()),
+                    "min": float(df[name].min()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                    "max": float(df[name].max()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                    "mean": float(df[name].mean()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                }
 
-        # If no features specified, use all numeric columns
-        if not feature_defs:
-            num_cols = df.select_dtypes(include="number").columns.tolist()
-            selected_cols = list(set(selected_cols + num_cols))
-            feature_schema = {c: {"dtype": str(df[c].dtype)} for c in selected_cols if c in df.columns}
+            elif not expr and not passthrough and name in df.columns:
+                selected_cols.append(name)
+                feature_schema[name] = {
+                    "dtype": str(df[name].dtype),
+                    "nullCount": int(df[name].isnull().sum()),
+                    "min": float(df[name].min()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                    "max": float(df[name].max()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                    "mean": float(df[name].mean()) if pd.api.types.is_numeric_dtype(df[name]) else None,
+                }
+            else:
+                failed_features.append({"name": name, "reason": "column_not_found_and_no_expression"})
 
-        feature_df = df[[c for c in selected_cols if c in df.columns]]
+        feature_df = df[[c for c in dict.fromkeys(selected_cols) if c in df.columns]]
 
-        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
-            tmp_path = tmp.name
-        feature_df.to_csv(tmp_path, index=False)
+        # Save engineered CSV — registration (feature set + version) is done by the caller
+        # (e.g. BPMN RegisterFeatureSet → VersionFeature tasks) to avoid double-registration.
+        prefix = f"engineer_{req.outputFeatureSetId or uuid4().hex[:8]}"
+        with _persistent_csv(prefix=prefix) as tmp_path:
+            feature_df.to_csv(tmp_path, index=False)
+            local_ref = tmp_path
 
-        # Get or create the output feature set
-        output_fs_id = req.outputFeatureSetId
-        if not output_fs_id:
-            fs = svc.create_feature_set(
-                name=f"features_{req.datasetVersion}",
-                owner=None,
-                entity_schema=",".join(req.entityKeys),
-                description=f"Auto-engineered from dataset version {req.datasetVersion}",
-            )
-            output_fs_id = fs["featureSetId"]
-
-        fs_version = svc.create_feature_version(
-            fs_id=output_fs_id,
-            storage_ref=tmp_path,
-            schema_ref=None,
-            computed_from=req.datasetVersion,
-            ticket_id=req.ticketId,
-        )
-        os.unlink(tmp_path)
-
-        report_ref = f"reports/engineer/{fs_version['versionId']}"
         return EngineerResponse(
-            featureSetVersionId=fs_version["versionId"],
-            featureSetId=output_fs_id,
-            storageRef=fs_version["storageRef"],
+            featureSetVersionId=None,
+            featureSetId=req.outputFeatureSetId,
+            storageRef=None,
+            localRef=local_ref,
             featureSchema=feature_schema,
-            computationReportRef=report_ref,
+            failedFeatures=failed_features,
+            computationReportRef=None,
+        )
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "feature_set_not_found", "message": str(exc)}},
         )
     except Exception as exc:
         raise HTTPException(

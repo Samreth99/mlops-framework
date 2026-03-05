@@ -213,6 +213,33 @@ def list_builds(repo_id: Optional[str] = None) -> List[Dict[str, Any]]:
     return builds
 
 
+def update_build(
+    build_id: str,
+    status: str,
+    image_ref: Optional[str] = None,
+    digest: Optional[str] = None,
+    logs_ref: Optional[str] = None,
+    error_summary: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Called by GitHub Actions CI callback (PATCH) to set the real build result."""
+    record = _store["builds"].get(build_id)
+    if record is None:
+        return None
+    record["status"] = status
+    record["finished_at"] = _now()
+    if image_ref:
+        record["environment"]["imageRef"] = image_ref
+        if image_ref not in record["artifactRefs"]:
+            record["artifactRefs"].append(image_ref)
+    if digest:
+        record["environment"]["imageDigest"] = digest
+    if logs_ref:
+        record["logsRef"] = logs_ref
+    if error_summary:
+        record["errorSummary"] = error_summary
+    return record
+
+
 def get_build_status(build_id: str) -> Optional[Dict[str, Any]]:
     build = _store["builds"].get(build_id)
     if build is None:
