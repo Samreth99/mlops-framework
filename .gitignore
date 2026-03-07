@@ -44,6 +44,7 @@ target/
 *.bpmn
 *.pdf
 
-# Data storage
+# Data storage — ignore data files but allow DVC tracking files and .gitignore
 framework/src/mlops/dimensions/data/data-storage/*
 !framework/src/mlops/dimensions/data/data-storage/.gitignore
+!framework/src/mlops/dimensions/data/data-storage/*.dvc

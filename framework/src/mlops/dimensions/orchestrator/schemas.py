@@ -31,6 +31,7 @@ class TicketCreate(BaseModel):
     relatedArtifacts: List[str] = []
     contractRef: Optional[str] = None
     tags: List[str] = []
+    routingHint: Optional[str] = None   # pre-set by Plan dimension (e.g. NEW_DATA, NEW_REQUIREMENT)
 
 
 class TicketResponse(BaseModel):
@@ -50,6 +51,7 @@ class TicketResponse(BaseModel):
     timestamps: Dict[str, str]
     links: Dict[str, List]
     sla: Optional[str] = "48h"
+    routingHint: Optional[str] = None
 
 
 class TicketUpdate(BaseModel):
@@ -350,7 +352,7 @@ class HealthCheckResponse(BaseModel):
 
 class ClassificationRequest(BaseModel):
     ticketId: str
-    signals: Dict[str, Any]            # e.g. {"accuracy_drop": 0.15, "data_drift": "high"}
+    signals: Dict[str, Any] = {}       # e.g. {"accuracy_drop": 0.15, "data_drift": "high"}
     manualOverride: Optional[str] = None
     classifierVersion: str = "v1-llm-classifier"
 

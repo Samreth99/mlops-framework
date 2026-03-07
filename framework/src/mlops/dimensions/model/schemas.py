@@ -19,6 +19,7 @@ class ExperimentResponse(BaseModel):
     experimentId: str
     name: str
     objective: Optional[str] = None
+    ticketId: Optional[str] = None
     artifact_location: Optional[str] = None
     lifecycle_stage: Optional[str] = None
     creation_time: Optional[str] = None
@@ -35,7 +36,7 @@ class ExecuteTrainingRequest(BaseModel):
     target_column: str = Field("Class", description="Target column name")
     cv_folds: int = Field(10, description="Number of cross-validation folds")
     seed: Optional[int] = Field(42, description="Random seed for reproducibility")
-    ticketId: Optional[str] = Field(None, description="Linked orchestration ticket")
+    ticketId: str = Field(..., description="Linked orchestration ticket")
     registered_model_name: Optional[str] = Field(None, description="If set, register model under this name")
 
 
@@ -45,6 +46,7 @@ class ExecuteTrainingResponse(BaseModel):
     modelArtifactRef: str
     metrics: Dict[str, Any] = {}
     status: str = "FINISHED"
+    resolvedDatasetPath: Optional[str] = None
 
 
 # ─────────────────────────────────────────────
@@ -63,7 +65,7 @@ class ExecuteTuningRequest(BaseModel):
     target_column: str = Field("Class")
     test_size: float = 0.2
     seed: Optional[int] = 42
-    ticketId: Optional[str] = None
+    ticketId: str = Field(..., description="Linked orchestration ticket")
 
 
 class TuningCandidate(BaseModel):
@@ -77,6 +79,7 @@ class ExecuteTuningResponse(BaseModel):
     experimentId: str
     bestParams: Dict[str, Any]
     candidateLeaderboard: List[TuningCandidate]
+    resolvedDatasetPath: Optional[str] = None
 
 
 # ─────────────────────────────────────────────
@@ -93,7 +96,7 @@ class ExecuteValidationRequest(BaseModel):
     validationSuiteRef: Optional[str] = Field(None, description="Optional external validation suite")
     rules: List[ValidationRule] = Field(default_factory=list, description="Validation threshold rules")
     thresholds: Optional[Dict[str, float]] = Field(None, description="Simple metric→threshold map (alternative to rules)")
-    ticketId: Optional[str] = None
+    ticketId: str = Field(..., description="Linked orchestration ticket")
 
 
 class ExecuteValidationResponse(BaseModel):
@@ -112,7 +115,7 @@ class ExecuteEvaluationRequest(BaseModel):
     metrics: List[str] = Field(default_factory=lambda: ["accuracy", "f1_macro"])
     fairnessChecks: Optional[List[Dict[str, Any]]] = None
     target_column: str = Field("Class")
-    ticketId: Optional[str] = None
+    ticketId: str = Field(..., description="Linked orchestration ticket")
 
 
 class ExecuteEvaluationResponse(BaseModel):
@@ -120,6 +123,7 @@ class ExecuteEvaluationResponse(BaseModel):
     runId: str
     metrics: Dict[str, Any]
     passPerCheck: Dict[str, bool] = {}
+    resolvedDatasetPath: Optional[str] = None
 
 
 # ─────────────────────────────────────────────
@@ -161,7 +165,7 @@ class ModelVersionCreateRequest(BaseModel):
     metricsRef: Optional[str] = None
     datasetRef: Optional[str] = None
     featureRef: Optional[str] = None
-    ticketId: Optional[str] = None
+    ticketId: str = Field(..., description="Linked orchestration ticket")
     stage: Optional[str] = Field(None, description="Target stage: None, Staging, Production, Archived")
     description: Optional[str] = None
 
@@ -187,7 +191,7 @@ class ModelRegisterRequest(BaseModel):
     runId: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     evidenceRefs: Optional[List[str]] = None
-    ticketId: Optional[str] = None
+    ticketId: str = Field(..., description="Linked orchestration ticket")
     description: Optional[str] = None
 
 

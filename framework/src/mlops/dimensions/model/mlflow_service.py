@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import itertools
+import json
 import logging
 import warnings
 
@@ -13,7 +14,7 @@ warnings.filterwarnings(
 
 import numpy as np
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 import mlflow
@@ -44,6 +45,48 @@ def _ts_to_iso(ts_ms: Optional[int]) -> Optional[str]:
     return datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).isoformat()
 
 
+def _resolve_data_split(source: Optional[str], split: str = "train") -> Optional[str]:
+    """
+    Resolve a dataset or feature-version reference to a local file path for the
+    requested split ('train' or 'test').
+
+    Resolution order:
+      1. '{featureSetId}/{versionId}' → look up feature_versions in registry
+      2. '{datasetId}/{versionId}'    → let data_svc.resolve_split_path handle it
+      3. s3:// URI / bare local path  → let data_svc.resolve_split_path handle it
+    """
+    from pathlib import Path as _Path
+
+    if not source:
+        return None
+
+    if (
+        "/" in source
+        and not source.startswith("s3://")
+        and not _Path(source).exists()
+    ):
+        parts = source.split("/", 1)
+        if len(parts) == 2:
+            fs_id, ver_id = parts
+            try:
+                reg = data_svc._load_registry()
+                ver = reg.get("feature_versions", {}).get(fs_id, {}).get(ver_id)
+                if ver:
+                    local_key = "trainLocalRef" if split == "train" else "testLocalRef"
+                    s3_key = "trainStorageRef" if split == "train" else "testStorageRef"
+                    local_ref = ver.get(local_key)
+                    if local_ref and _Path(local_ref).exists():
+                        return local_ref
+                    s3_ref = ver.get(s3_key) or ver.get("storageRef", "")
+                    if s3_ref.startswith("s3://"):
+                        local_dest = str(data_svc._DATA_STORAGE / s3_ref.split("/")[-1])
+                        return data_svc.download_from_s3(s3_ref, local_dest)
+            except Exception as e:
+                logger.warning("feature_versions registry lookup failed for %s: %s", source, e)
+
+    return data_svc.resolve_split_path(source, split=split)
+
+
 # ═══════════════════════════════════════════════════════════════════
 #  EXPERIMENTS
 # ═══════════════════════════════════════════════════════════════════
@@ -51,17 +94,24 @@ def create_experiment(
     name: str,
     objective: Optional[str] = None,
     artifact_root: Optional[str] = None,
+    ticket_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     client = _client()
     existing = client.get_experiment_by_name(name)
     if existing is not None:
         return _experiment_to_dict(existing)
 
+    tags: Dict[str, str] = {}
+    if objective:
+        tags["objective"] = objective
+    if ticket_id:
+        tags["ticketId"] = ticket_id
+
     art_location = artifact_root or settings.mlflow_artifact_root
     exp_id = client.create_experiment(
         name=name,
         artifact_location=art_location,
-        tags={"objective": objective} if objective else None,
+        tags=tags or None,
     )
     exp = client.get_experiment(exp_id)
     return _experiment_to_dict(exp)
@@ -84,6 +134,7 @@ def _experiment_to_dict(exp) -> Dict[str, Any]:
         "experimentId": exp.experiment_id,
         "name": exp.name,
         "objective": (exp.tags or {}).get("objective"),
+        "ticketId": (exp.tags or {}).get("ticketId"),
         "artifact_location": exp.artifact_location,
         "lifecycle_stage": exp.lifecycle_stage,
         "creation_time": _ts_to_iso(getattr(exp, "creation_time", None)),
@@ -118,8 +169,8 @@ def execute_training(
     # Resolve experiment
     exp_id = _resolve_experiment_id(client, experiment_id, experiment_name)
 
-    # Load train split
-    train_path = data_svc.resolve_split_path(dataset_source, split="train")
+    # Load train split — supports featureSetId/versionId, datasetId/versionId, local path, S3
+    train_path = _resolve_data_split(dataset_source, split="train")
     df = _load_dataset(train_path)
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not found in dataset columns: {list(df.columns)}")
@@ -127,12 +178,14 @@ def execute_training(
     X = df.drop(columns=[target_column])
     y = df[target_column]
 
-    # Encode labels if needed
+    # Encode labels if needed; save classes so evaluation can reuse the same mapping
+    label_classes: Optional[List] = None
     if y.dtype.kind not in ("i", "u", "f"):
         from sklearn.preprocessing import LabelEncoder
         le = LabelEncoder()
         encoded = np.asarray(le.fit_transform(y))
         y = pd.Series(data=encoded, index=y.index, name=target_column)
+        label_classes = le.classes_.tolist()
 
     params = training_config or {}
     if "random_state" not in params:
@@ -142,6 +195,8 @@ def execute_training(
         run_id = run.info.run_id
         mlflow.log_params(params)
         mlflow.log_param("cv_folds", cv_folds)
+        if label_classes is not None:
+            mlflow.set_tag("training.label_classes", json.dumps(label_classes))
 
         # k-fold cross-validation
         cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=seed)
@@ -181,8 +236,8 @@ def execute_training(
             sig = infer_signature(X_sample, y_pred)
             log_kwargs["signature"] = sig
             log_kwargs["input_example"] = X.head(1).astype(float)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Could not infer model signature: %s", e)
 
         model_info = mlflow.sklearn.log_model(**log_kwargs)
         model_uri = model_info.model_uri  # "models:/<model_id>" in MLflow 3.x
@@ -193,6 +248,7 @@ def execute_training(
         "modelArtifactRef": model_uri,
         "metrics": metrics,
         "status": "FINISHED",
+        "resolvedDatasetPath": train_path,
     }
 
 
@@ -220,7 +276,7 @@ def execute_tuning(
     client = _client()
     exp_id = _resolve_experiment_id(client, experiment_id, experiment_name)
 
-    train_path = data_svc.resolve_split_path(dataset_source, split="train")
+    train_path = _resolve_data_split(dataset_source, split="train")
     df = _load_dataset(train_path)
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not in dataset")
@@ -268,7 +324,6 @@ def execute_tuning(
                     "f1_macro": float(f1_score(y_test, y_pred, average="macro")),
                 }
                 mlflow.log_metrics(m)
-                mlflow.sklearn.log_model(model, name="model")
 
                 candidates.append({
                     "runId": child_id,
@@ -286,6 +341,7 @@ def execute_tuning(
         "experimentId": exp_id,
         "bestParams": best["params"],
         "candidateLeaderboard": candidates,
+        "resolvedDatasetPath": train_path,
     }
 
 
@@ -346,8 +402,8 @@ def execute_validation(
     # Log validation result as a tag on the run
     try:
         client.set_tag(run_id, "validation.passed", str(all_passed))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Could not set validation tag on run %s: %s", run_id, e)
 
     return {
         "passed": all_passed,
@@ -379,17 +435,33 @@ def execute_evaluation(
     import pandas as pd
     from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
+    if not eval_dataset_source:
+        raise ValueError(
+            "evalDatasetVersion is required. Pass the testLocalRef from your feature version "
+            "(e.g. the path to *_test.csv) or a '{featureSetId}/{versionId}' reference."
+        )
+
     client = _client()
 
-    # Fall back to default test dataset if none provided
-    if not eval_dataset_source:
-        eval_dataset_source = settings.default_test_dataset_path
+    # Resolve the source training run to carry over experiment context and label mapping
+    source_run_id = _resolve_run_id_from_uri(client, model_candidate_ref)
+    exp_id = None
+    label_classes = None
+    if source_run_id:
+        try:
+            source_run = client.get_run(source_run_id)
+            exp_id = source_run.info.experiment_id
+            raw = source_run.data.tags.get("training.label_classes")
+            if raw:
+                label_classes = json.loads(raw)
+        except Exception as e:
+            logger.warning("Could not load source run %s: %s", source_run_id, e)
 
     # Load model (sklearn flavor avoids strict schema enforcement)
     model = mlflow.sklearn.load_model(model_candidate_ref)
 
-    # Load test split
-    test_path = data_svc.resolve_split_path(eval_dataset_source, split="test")
+    # Load test split — supports featureSetId/versionId, local path, S3
+    test_path = _resolve_data_split(eval_dataset_source, split="test")
     df = _load_dataset(test_path)
     if target_column not in df.columns:
         raise ValueError(f"Target column '{target_column}' not in eval dataset")
@@ -397,10 +469,23 @@ def execute_evaluation(
     X_eval = df.drop(columns=[target_column])
     y_eval = df[target_column]
 
+    # Re-encode labels using the same class mapping as training to avoid mismatched integers
     if y_eval.dtype.kind not in ("i", "u", "f"):
         from sklearn.preprocessing import LabelEncoder
         le = LabelEncoder()
-        y_eval = pd.Series(data=np.asarray(le.fit_transform(y_eval)), index=y_eval.index, name=target_column)
+        if label_classes is not None:
+            le.classes_ = np.array(label_classes)
+            y_eval = pd.Series(
+                data=np.asarray(le.transform(y_eval)),
+                index=y_eval.index,
+                name=target_column,
+            )
+        else:
+            y_eval = pd.Series(
+                data=np.asarray(le.fit_transform(y_eval)),
+                index=y_eval.index,
+                name=target_column,
+            )
 
     y_pred = model.predict(X_eval.astype(float))
 
@@ -424,16 +509,6 @@ def execute_evaluation(
             check_name = fc.get("name", "fairness_check")
             pass_per_check[check_name] = True  # placeholder
 
-    # Log to MLflow
-    source_run_id = _resolve_run_id_from_uri(client, model_candidate_ref)
-    exp_id = None
-    if source_run_id:
-        try:
-            source_run = client.get_run(source_run_id)
-            exp_id = source_run.info.experiment_id
-        except Exception:
-            pass
-
     with mlflow.start_run(experiment_id=exp_id, run_name="evaluation_run") as run:
         run_id = run.info.run_id
         mlflow.log_metrics(computed)
@@ -445,6 +520,7 @@ def execute_evaluation(
         "runId": run_id,
         "metrics": computed,
         "passPerCheck": pass_per_check,
+        "resolvedDatasetPath": test_path,
     }
 
 
@@ -709,22 +785,24 @@ def _load_dataset(source: Optional[str]) -> "pd.DataFrame":
 
     if not source:
         default = settings.default_dataset_path
-        return pd.read_csv(default).dropna().reset_index(drop=True)
-
-    if source.startswith("s3://"):
+        df = pd.read_csv(default).dropna().reset_index(drop=True)
+    elif source.startswith("s3://"):
         local_path = data_svc.download_from_s3(source, str(
             (data_svc._DATA_STORAGE / source.split("/")[-1])
         ))
-        return pd.read_csv(local_path).dropna().reset_index(drop=True)
-
-    if source.startswith("http://") or source.startswith("https://"):
+        df = pd.read_csv(local_path).dropna().reset_index(drop=True)
+    elif source.startswith("http://") or source.startswith("https://"):
         import httpx
         with httpx.Client(follow_redirects=True, timeout=60.0) as c:
             resp = c.get(source)
             resp.raise_for_status()
-            return pd.read_csv(io.StringIO(resp.text)).dropna().reset_index(drop=True)
+            df = pd.read_csv(io.StringIO(resp.text)).dropna().reset_index(drop=True)
+    else:
+        df = pd.read_csv(source).dropna().reset_index(drop=True)
 
-    return pd.read_csv(source).dropna().reset_index(drop=True)
+    if df.empty:
+        raise ValueError(f"Dataset at '{source}' has 0 rows after removing NaN values.")
+    return df
 
 
 def _build_model_tags(

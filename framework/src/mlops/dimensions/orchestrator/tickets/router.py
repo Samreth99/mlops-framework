@@ -75,6 +75,7 @@ def create_ticket(req: TicketCreate):
             related_artifacts=req.relatedArtifacts,
             contract_ref=req.contractRef,
             tags=req.tags,
+            routing_hint=req.routingHint,
         )
         return TicketResponse(**result)
     except Exception as e:

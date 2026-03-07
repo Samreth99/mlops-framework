@@ -56,6 +56,7 @@ def create_ticket(
     related_artifacts: Optional[List[str]] = None,
     contract_ref: Optional[str] = None,
     tags: Optional[List[str]] = None,
+    routing_hint: Optional[str] = None,
 ) -> Dict[str, Any]:
     ticket_id = _new_id("tkt-")
     now = _now()
@@ -76,6 +77,7 @@ def create_ticket(
         "timestamps": {"created_at": now, "updated_at": now},
         "links": {"artifacts": [], "evidence": []},
         "sla": "48h",
+        "routingHint": routing_hint,
         "history": [],
         "routing_history": [],
     }
@@ -567,22 +569,48 @@ def trigger_health_check(
     }
 
 
+_TICKET_TYPE_ROUTING = {
+    # Data engineer: feature set ready → validate data → retraining
+    "FEATURE_SET": ("NEW_DATA",          "Feature set ready — data validation required before retraining.", "Trigger Data Validation", 0.85),
+    # Model engineer: model initialized → stand by for retraining signal from data path
+    "INIT":        ("MODEL_INIT",        "Model initialized — stand by for data validation and retraining trigger.", "Await Retraining Signal", 0.90),
+    # Ops signals
+    "PERF_ALERT":  ("PERF_INCIDENT",     "Performance alert detected on ticket.", "Assess & Classify Issue", 0.80),
+    "DATA_ALERT":  ("DATA_QUALITY_ISSUE","Data quality issue reported on ticket.", "Trigger Data Fix", 0.80),
+    # Model lane signals
+    "DATA_BUG_FOUND":        ("DATA_QUALITY_ISSUE", "Data bug detected — trigger data fix.", "Trigger Data Fix", 0.85),
+    "MODEL_CANDIDATE_READY": ("DEPLOY_CANDIDATE",   "Model candidate ready — trigger deployment review.", "Trigger Deployment", 0.90),
+}
+
+
 def classify_ticket(
     ticket_id: str,
     signals: Dict[str, Any],
     manual_override: Optional[str] = None,
     classifier_version: str = "v1-llm-classifier",
 ) -> Dict[str, Any]:
-    label = "GENERAL_MAINTENANCE"
-    rationale = "No high-severity signals detected."
-    recommended_action = "Monitor"
-    confidence: float = 0.55  # low confidence when no strong signal
+    label = "UNSUPPORTED_TICKET"
+    rationale = "No signals, no routing hint, and ticket type not recognized."
+    recommended_action = "Route to Manual Classification"
+    confidence: float = 0.50
 
     if manual_override:
         label = manual_override
         rationale = "Manual override applied by operator."
         recommended_action = "Follow manual routing label."
         confidence = 1.0  # human decision — always certain
+
+    elif not signals:
+        # No signals — check routing hint set by Plan dimension, then fall back to ticket type
+        ticket = get_ticket(ticket_id)
+        if ticket:
+            if ticket.get("routingHint"):
+                label = ticket["routingHint"]
+                rationale = f"Routing hint '{label}' pre-set by Plan dimension."
+                recommended_action = "Follow plan routing hint."
+                confidence = 0.95
+            elif ticket["type"] in _TICKET_TYPE_ROUTING:
+                label, rationale, recommended_action, confidence = _TICKET_TYPE_ROUTING[ticket["type"]]
 
     elif signals.get("accuracy_drop", 0) > 0.1:
         # numeric float → scale confidence from how far above the 10% threshold

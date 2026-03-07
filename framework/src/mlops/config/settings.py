@@ -16,7 +16,7 @@ def _load_dotenv(env_path: Path) -> None:
             key, _, value = line.partition("=")
             key = key.strip()
             value = value.split("#")[0].strip()  # strip inline comments
-            if key and key not in os.environ:
+            if key:
                 os.environ[key] = value
 
 
@@ -29,10 +29,10 @@ _load_dotenv(_PROJECT_ROOT / ".env")
 class Settings:
     # ── MLflow ──
     mlflow_tracking_uri: str = field(
-        default_factory=lambda: os.getenv("MLFLOW_TRACKING_URI", "http://13.49.44.86:5000/")
+        default_factory=lambda: os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000/")
     )
     mlflow_artifact_root: str = field(
-        default_factory=lambda: os.getenv("MLFLOW_ARTIFACT_ROOT", "./mlruns")
+        default_factory=lambda: os.getenv("MLFLOW_ARTIFACT_ROOT", "s3://mlops-storage/mlflow")
     )
     mlflow_experiment_name: str = field(
         default_factory=lambda: os.getenv("MLFLOW_EXPERIMENT_NAME", "Default")

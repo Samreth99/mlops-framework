@@ -49,6 +49,7 @@ def create_experiment(req: ExperimentCreateRequest):
         result = svc.create_experiment(
             name=req.name,
             objective=req.objective,
+            ticket_id=req.ticketId,
         )
         return ExperimentResponse(**result)
     except Exception as e:
