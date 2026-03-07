@@ -113,6 +113,14 @@ class BuildStatusResponse(BaseModel):
     updated_at: Optional[str] = None
 
 
+class BuildCallbackRequest(BaseModel):
+    status: str = Field(..., description="BUILT | FAILED")
+    imageRef: Optional[str] = Field(None, description="Docker image ref, e.g. ghcr.io/owner/repo:sha")
+    digest: Optional[str] = Field(None, description="Image digest, e.g. sha256:...")
+    logsRef: Optional[str] = Field(None, description="Link to build logs")
+    errorSummary: Optional[str] = Field(None, description="Short error description on failure")
+
+
 # ─────────────────────────────────────────────
 # Packages
 # ─────────────────────────────────────────────

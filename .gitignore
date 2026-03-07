@@ -27,8 +27,24 @@ mlartifacts/
 .DS_Store
 Thumbs.db
 
+# AWS credentials / key pairs
+framework/cred/
+
+# AWS tutorial notebooks
+AWS EC2 with Boto3.ipynb
+Boto 3 for S3.ipynb
+
 # Build artifacts
 *.egg-info/
 dist/
 build/
 target/
+
+# BPMN and PDF files
+*.bpmn
+*.pdf
+
+# Data storage — ignore data files but allow DVC tracking files and .gitignore
+framework/src/mlops/dimensions/data/data-storage/*
+!framework/src/mlops/dimensions/data/data-storage/.gitignore
+!framework/src/mlops/dimensions/data/data-storage/*.dvc

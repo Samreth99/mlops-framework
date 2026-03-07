@@ -14,8 +14,9 @@ def _load_dotenv(env_path: Path) -> None:
             if not line or line.startswith("#"):
                 continue
             key, _, value = line.partition("=")
-            key, value = key.strip(), value.strip()
-            if key and key not in os.environ:
+            key = key.strip()
+            value = value.split("#")[0].strip()  # strip inline comments
+            if key:
                 os.environ[key] = value
 
 
@@ -31,7 +32,7 @@ class Settings:
         default_factory=lambda: os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000/")
     )
     mlflow_artifact_root: str = field(
-        default_factory=lambda: os.getenv("MLFLOW_ARTIFACT_ROOT", "./mlruns")
+        default_factory=lambda: os.getenv("MLFLOW_ARTIFACT_ROOT", "s3://mlops-storage/mlflow")
     )
     mlflow_experiment_name: str = field(
         default_factory=lambda: os.getenv("MLFLOW_EXPERIMENT_NAME", "Default")
@@ -39,10 +40,10 @@ class Settings:
 
     # ── Dataset ──
     default_dataset_path: str = field(
-        default_factory=lambda: os.getenv("DEFAULT_DATASET_PATH", "src/mlops/dimensions/data/breast_train.csv")
+        default_factory=lambda: os.getenv("DEFAULT_DATASET_PATH", "src/mlops/dimensions/data/data-storage/breast_train.csv")
     )
     default_test_dataset_path: str = field(
-        default_factory=lambda: os.getenv("DEFAULT_TEST_DATASET_PATH", "src/mlops/dimensions/data/breast_test.csv")
+        default_factory=lambda: os.getenv("DEFAULT_TEST_DATASET_PATH", "src/mlops/dimensions/data/data-storage/breast_test.csv")
     )
 
     # ── GitHub Actions Auto-Dispatch ──
@@ -57,6 +58,37 @@ class Settings:
     )
     public_api_url: str = field(
         default_factory=lambda: os.getenv("PUBLIC_API_URL", "http://localhost:8000")
+    )
+
+    # ── Redis ──
+    redis_host: str = field(
+        default_factory=lambda: os.getenv("REDIS_HOST", "localhost")
+    )
+    redis_port: int = field(
+        default_factory=lambda: int(os.getenv("REDIS_PORT", "6379"))
+    )
+    redis_password: str = field(
+        default_factory=lambda: os.getenv("REDIS_PASSWORD", "").split("#")[0].strip()
+    )
+    redis_db: int = field(
+        default_factory=lambda: int(os.getenv("REDIS_DB", "0"))
+    )
+    redis_feature_ttl: int = field(
+        default_factory=lambda: int(os.getenv("REDIS_FEATURE_TTL", "0").split("#")[0].strip())
+    )
+
+    # ── AWS Configuration ──
+    aws_access_key_id: str = field(
+        default_factory=lambda: os.getenv("AWS_ACCESS_KEY_ID", "")
+    )
+    aws_secret_access_key: str = field(
+        default_factory=lambda: os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    )
+    aws_s3_bucket: str = field(
+        default_factory=lambda: os.getenv("AWS_S3_BUCKET", "mlops-storage")
+    )
+    aws_s3_region: str = field(
+        default_factory=lambda: os.getenv("AWS_S3_REGION", "eu-north-1")
     )
 
 

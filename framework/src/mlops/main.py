@@ -7,6 +7,7 @@ from .dimensions.data.router import router as data_router
 from .dimensions.ops.router import router as ops_router
 from .dimensions.soft.router import router as soft_router
 from .dimensions.model.router import router as model_router
+from .dimensions.orchestrator.router import router as orchestrator_router
 
 app = FastAPI(
     title="MLOps Framework",
@@ -32,3 +33,4 @@ app.include_router(data_router, prefix="/data", tags=["data"])
 app.include_router(ops_router, prefix="/ops", tags=["ops"])
 app.include_router(soft_router, prefix="/soft", tags=["soft"])
 app.include_router(model_router, prefix="/model", tags=["model"])
+app.include_router(orchestrator_router, prefix="/orchestrator", tags=["orchestrator"])

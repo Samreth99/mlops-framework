@@ -5,7 +5,7 @@ from .data_acquisition.router import router as data_acquisition_router
 from .data_processing_feature_engineering.router import router as data_processing_feature_engineering_router
 from .feature_storage_versioning.router import router as feature_storage_versioning_router
 
-router = APIRouter(prefix="/data", tags=["data"])
+router = APIRouter()
 
 router.include_router(data_storage_versioning_router)
 router.include_router(data_acquisition_router)
