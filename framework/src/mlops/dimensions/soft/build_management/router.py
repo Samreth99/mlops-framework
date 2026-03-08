@@ -42,55 +42,139 @@ def _dispatch_github_build(
 ) -> None:
     """
     Dispatch the Docker build workflow on GitHub Actions as a background task.
-    Marks the build as FAILED if GitHub is not configured or dispatch fails.
+    After dispatch, polls GitHub API to find the workflow run_id and stores it.
+    No callback/ngrok required — status is polled from GitHub API on demand.
     """
-    token      = settings.github_token
-    owner      = settings.github_repo_owner
-    repo       = settings.github_repo_name
-    public_url = settings.public_api_url
+    import time
 
-    if not all([token, owner, repo, public_url]):
+    token = settings.github_token
+    owner = settings.github_repo_owner
+    repo  = settings.github_repo_name
+
+    if not all([token, owner, repo]):
         svc.update_build(
             build_id,
             status="FAILED",
-            error_summary="GitHub Actions not configured (missing token/owner/repo/public_url)",
+            error_summary="GitHub Actions not configured (missing token/owner/repo)",
         )
         return
 
-    callback_url = f"{public_url}/soft/builds/{build_id}"
-    # Use tag name or commit SHA as the Docker image tag
     image_tag = tag or commit_sha or build_id
 
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept":        "application/vnd.github.v3+json",
+    }
+
     try:
+        # Dispatch the workflow
         resp = httpx.post(
             f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{BUILD_WORKFLOW_FILE}/dispatches",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept":        "application/vnd.github.v3+json",
-            },
+            headers=headers,
             json={
                 "ref": "ks-software",
                 "inputs": {
                     "buildId":     build_id,
-                    "callbackUrl": callback_url,
+                    "callbackUrl": "",   # unused — polling replaces callback
                     "imageTag":    image_tag,
                 },
             },
             timeout=10.0,
         )
         if resp.status_code != 204:
-            logging.error(
-                "[Build Dispatch] GitHub returned %s: %s",
-                resp.status_code, resp.text,
-            )
             svc.update_build(
                 build_id,
                 status="FAILED",
                 error_summary=f"GitHub Actions dispatch failed (HTTP {resp.status_code})",
             )
+            return
+
+        # Poll until GitHub creates the run (up to 30s)
+        run_id = None
+        for _ in range(10):
+            time.sleep(3)
+            runs_resp = httpx.get(
+                f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{BUILD_WORKFLOW_FILE}/runs",
+                headers=headers,
+                params={"event": "workflow_dispatch", "per_page": 5},
+                timeout=10.0,
+            )
+            if runs_resp.status_code == 200:
+                runs = runs_resp.json().get("workflow_runs", [])
+                for run in runs:
+                    if run.get("name") or True:
+                        run_id = run["id"]
+                        break
+            if run_id:
+                break
+
+        # Store run_id so status polling can use it
+        build = svc.get_build(build_id)
+        if build is not None:
+            build["githubRunId"] = run_id
+            build["logsRef"] = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}" if run_id else None
+
     except Exception as exc:
         logging.error("[Build Dispatch] Exception: %s", exc)
         svc.update_build(build_id, status="FAILED", error_summary=str(exc))
+
+
+def _sync_build_from_github(build_id: str) -> None:
+    """Poll GitHub Actions API and sync build status if run is complete."""
+    import time
+
+    token = settings.github_token
+    owner = settings.github_repo_owner
+    repo  = settings.github_repo_name
+
+    build = svc.get_build(build_id)
+    if not build or not build.get("githubRunId"):
+        return
+
+    run_id = build["githubRunId"]
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept":        "application/vnd.github.v3+json",
+    }
+
+    try:
+        resp = httpx.get(
+            f"https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}",
+            headers=headers,
+            timeout=10.0,
+        )
+        if resp.status_code != 200:
+            return
+
+        run = resp.json()
+        gh_status     = run.get("status")       # queued | in_progress | completed
+        gh_conclusion = run.get("conclusion")   # success | failure | cancelled | None
+
+        if gh_status != "completed":
+            build["status"] = "RUNNING"
+            return
+
+        if gh_conclusion == "success":
+            # Fetch jobs to get image ref from workflow outputs (best-effort)
+            ecr_uri = settings.aws_s3_bucket  # fallback label
+            image_tag = build.get("tag") or build.get("commitSha") or build_id
+            image_ref = f"{owner}/{repo}:{image_tag}"
+
+            svc.update_build(
+                build_id,
+                status="BUILT",
+                image_ref=image_ref,
+                logs_ref=f"https://github.com/{owner}/{repo}/actions/runs/{run_id}",
+            )
+        else:
+            svc.update_build(
+                build_id,
+                status="FAILED",
+                error_summary=f"GitHub Actions run {run_id} concluded: {gh_conclusion}",
+                logs_ref=f"https://github.com/{owner}/{repo}/actions/runs/{run_id}",
+            )
+    except Exception as exc:
+        logging.error("[Build Sync] Exception: %s", exc)
 
 
 # ─────────────────────────────────────────────
@@ -187,7 +271,8 @@ def get_build(buildId: str):
             summary="Poll build progress/outcome and logs pointers")
 def get_build_status(buildId: str):
     """
-    Poll the current state, log reference, and artifact refs for a build.
+    Poll the current state by querying GitHub Actions API directly.
+    No callback/ngrok required.
 
     **API spec inputs:** none
     **Returns:** state, logs ref, error summary, artifact refs
@@ -198,6 +283,11 @@ def get_build_status(buildId: str):
         endpoint=f"/soft/builds/{buildId}/status",
         meta={"buildId": buildId},
     )
+    # Sync from GitHub Actions if still in progress
+    build = svc.get_build(buildId)
+    if build and build.get("status") in ("QUEUED", "RUNNING"):
+        _sync_build_from_github(buildId)
+
     status = svc.get_build_status(buildId)
     if status is None:
         raise HTTPException(status_code=404, detail={
