@@ -11,6 +11,11 @@ on:
         description: "Full ECR image URI to pull and test"
         required: true
         type: string
+  push:
+    branches:
+      - ks-software
+    paths:
+      - ".github/workflows/docker-test-ci.yml"
 
 concurrency:
   group: docker-test-${{ github.run_id }}
@@ -20,7 +25,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/ks-software' && github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/ks-software' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
 
     permissions:
       contents: read
