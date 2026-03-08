@@ -103,13 +103,11 @@ def _dispatch_github_test(
                 break
 
         # Store run_id for polling
-        test_run = svc.get_test_run(test_run_id)
-        if test_run is not None:
-            test_run["githubRunId"] = run_id
-            test_run["logsRef"] = (
-                f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
-                if run_id else None
-            )
+        logs_ref = (
+            f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
+            if run_id else None
+        )
+        svc.patch_test_run_github_run(test_run_id, run_id, logs_ref)
 
     except Exception as exc:
         logging.error("[Test Dispatch] Exception: %s", exc)

@@ -108,10 +108,8 @@ def _dispatch_github_build(
                 break
 
         # Store run_id so status polling can use it
-        build = svc.get_build(build_id)
-        if build is not None:
-            build["githubRunId"] = run_id
-            build["logsRef"] = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}" if run_id else None
+        logs_ref = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}" if run_id else None
+        svc.patch_build_github_run(build_id, run_id, logs_ref)
 
     except Exception as exc:
         logging.error("[Build Dispatch] Exception: %s", exc)
@@ -150,7 +148,7 @@ def _sync_build_from_github(build_id: str) -> None:
         gh_conclusion = run.get("conclusion")   # success | failure | cancelled | None
 
         if gh_status != "completed":
-            build["status"] = "RUNNING"
+            svc.update_build(build_id, status="RUNNING")
             return
 
         if gh_conclusion == "success":
