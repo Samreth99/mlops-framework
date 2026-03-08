@@ -74,9 +74,8 @@ def _dispatch_github_build(
             json={
                 "ref": "ks-software",
                 "inputs": {
-                    "buildId":     build_id,
-                    "callbackUrl": "",   # unused — polling replaces callback
-                    "imageTag":    image_tag,
+                    "buildId":  build_id,
+                    "imageTag": image_tag,
                 },
             },
             timeout=10.0,

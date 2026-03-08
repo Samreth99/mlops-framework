@@ -7,9 +7,6 @@ on:
       buildId:
         description: "Build ID from /soft/builds"
         required: true
-      callbackUrl:
-        description: "Full callback URL: http://<host>/soft/builds/{buildId}"
-        required: true
       imageTag:
         description: "Docker image tag (commit SHA or tag name)"
         required: true
@@ -30,7 +27,6 @@ jobs:
 
     env:
       BUILD_ID:     ${{ inputs.buildId }}
-      CALLBACK_URL: ${{ inputs.callbackUrl }}
       IMAGE_TAG:    ${{ inputs.imageTag }}
       ECR_REGISTRY: ${{ secrets.AWS_ECR_LOGIN_URI }}
       ECR_REPO:     ${{ secrets.AWS_ECR_REPO_NAME }}
@@ -92,32 +88,7 @@ jobs:
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
         continue-on-error: true
 
-      # ── 7. Callback: report BUILT ─────────────────────────────────
-      - name: Report BUILT to API
-        if: steps.unit_tests.outcome == 'success' && steps.build.outcome == 'success' && steps.push.outcome == 'success'
-        run: |
-          curl -s -X PATCH "$CALLBACK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"status\":    \"BUILT\",
-              \"imageRef\":  \"${{ steps.build.outputs.image_ref }}\",
-              \"digest\":    \"${{ steps.push.outputs.digest }}\",
-              \"logsRef\":   \"github-actions://docker-build-ci/${{ github.run_id }}/logs\"
-            }"
-
-      # ── 8. Callback: report FAILED ────────────────────────────────
-      - name: Report FAILED to API
-        if: steps.unit_tests.outcome != 'success' || steps.build.outcome != 'success' || steps.push.outcome != 'success'
-        run: |
-          curl -s -X PATCH "$CALLBACK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"status\":       \"FAILED\",
-              \"errorSummary\": \"Unit tests or Docker build/push failed — see run ${{ github.run_id }}\",
-              \"logsRef\":      \"github-actions://docker-build-ci/${{ github.run_id }}/logs\"
-            }"
-
-      # ── 9. Fail job if any step failed ────────────────────────────
+      # ── 7. Fail job if any step failed ────────────────────────────
       - name: Fail job if any step failed
         if: steps.unit_tests.outcome != 'success' || steps.build.outcome != 'success' || steps.push.outcome != 'success'
         run: exit 1
