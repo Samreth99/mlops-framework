@@ -23,46 +23,68 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
-    # Only runs on explicit workflow_dispatch (not on push registration trigger)
     if: github.ref == 'refs/heads/ks-software' && github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: read
-      packages: write   # required to push to GHCR
 
     env:
       BUILD_ID:     ${{ inputs.buildId }}
       CALLBACK_URL: ${{ inputs.callbackUrl }}
       IMAGE_TAG:    ${{ inputs.imageTag }}
-      REGISTRY:     ghcr.io
-      IMAGE_NAME:   ${{ github.repository }}
+      ECR_REGISTRY: ${{ secrets.AWS_ECR_LOGIN_URI }}
+      ECR_REPO:     ${{ secrets.AWS_ECR_REPO_NAME }}
 
     steps:
       # ── 1. Checkout code ──────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Log in to GitHub Container Registry ────────────────────
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      # ── 2. Set up Python & run unit tests ─────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          python-version: "3.11"
 
-      # ── 3. Build Docker image ─────────────────────────────────────
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir -r framework/requirements.txt
+          pip install --no-cache-dir -e framework/
+
+      - name: Run unit tests
+        id: unit_tests
+        run: pytest framework/tests/ -v --tb=short
+        continue-on-error: true
+
+      # ── 3. Configure AWS credentials ──────────────────────────────
+      - name: Configure AWS credentials
+        if: steps.unit_tests.outcome == 'success'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            eu-north-1
+
+      # ── 4. Login to Amazon ECR ────────────────────────────────────
+      - name: Login to Amazon ECR
+        id: ecr_login
+        if: steps.unit_tests.outcome == 'success'
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ── 5. Build Docker image ─────────────────────────────────────
       - name: Build Docker image
         id: build
+        if: steps.unit_tests.outcome == 'success'
         run: |
-          IMAGE_REF="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$IMAGE_TAG"
+          IMAGE_REF="$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG"
           docker build -t "$IMAGE_REF" framework/
           echo "image_ref=$IMAGE_REF" >> $GITHUB_OUTPUT
         continue-on-error: true
 
-      # ── 4. Push image to GHCR ─────────────────────────────────────
-      - name: Push Docker image to GHCR
+      # ── 6. Push image to ECR ──────────────────────────────────────
+      - name: Push Docker image to ECR
         id: push
-        if: steps.build.outcome == 'success'
+        if: steps.unit_tests.outcome == 'success' && steps.build.outcome == 'success'
         run: |
           docker push "${{ steps.build.outputs.image_ref }}"
           DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
@@ -70,9 +92,9 @@ jobs:
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
         continue-on-error: true
 
-      # ── 5. Callback: report BUILT ─────────────────────────────────
+      # ── 7. Callback: report BUILT ─────────────────────────────────
       - name: Report BUILT to API
-        if: steps.build.outcome == 'success' && steps.push.outcome == 'success'
+        if: steps.unit_tests.outcome == 'success' && steps.build.outcome == 'success' && steps.push.outcome == 'success'
         run: |
           curl -s -X PATCH "$CALLBACK_URL" \
             -H "Content-Type: application/json" \
@@ -82,22 +104,20 @@ jobs:
               \"digest\":    \"${{ steps.push.outputs.digest }}\",
               \"logsRef\":   \"github-actions://docker-build-ci/${{ github.run_id }}/logs\"
             }"
-          echo "Reported BUILT to $CALLBACK_URL"
 
-      # ── 6. Callback: report FAILED ────────────────────────────────
+      # ── 8. Callback: report FAILED ────────────────────────────────
       - name: Report FAILED to API
-        if: steps.build.outcome != 'success' || steps.push.outcome != 'success'
+        if: steps.unit_tests.outcome != 'success' || steps.build.outcome != 'success' || steps.push.outcome != 'success'
         run: |
           curl -s -X PATCH "$CALLBACK_URL" \
             -H "Content-Type: application/json" \
             -d "{
               \"status\":       \"FAILED\",
-              \"errorSummary\": \"Docker build or push failed — see run ${{ github.run_id }}\",
+              \"errorSummary\": \"Unit tests or Docker build/push failed — see run ${{ github.run_id }}\",
               \"logsRef\":      \"github-actions://docker-build-ci/${{ github.run_id }}/logs\"
             }"
-          echo "Reported FAILED to $CALLBACK_URL"
 
-      # ── 7. Fail job if build/push failed ──────────────────────────
-      - name: Fail job if build failed
-        if: steps.build.outcome != 'success' || steps.push.outcome != 'success'
+      # ── 9. Fail job if any step failed ────────────────────────────
+      - name: Fail job if any step failed
+        if: steps.unit_tests.outcome != 'success' || steps.build.outcome != 'success' || steps.push.outcome != 'success'
         run: exit 1
