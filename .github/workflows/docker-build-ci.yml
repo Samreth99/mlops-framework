@@ -76,7 +76,7 @@ jobs:
         id: build
         if: steps.unit_tests.outcome == 'success'
         run: |
-          IMAGE_REF="$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG"
+          IMAGE_REF="$ECR_REGISTRY:$IMAGE_TAG"
           docker build -t "$IMAGE_REF" framework/
           echo "image_ref=$IMAGE_REF" >> $GITHUB_OUTPUT
         continue-on-error: true
