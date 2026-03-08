@@ -38,7 +38,7 @@ services:
   api:
     build:
       context: ./framework
-    image: mlops:latest
+    image: ${MLOPS_IMAGE:-mlops:latest}
     container_name: mlops-api
     ports:
       - "8000:8000"
