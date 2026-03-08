@@ -90,6 +90,12 @@ class Settings:
     aws_s3_region: str = field(
         default_factory=lambda: os.getenv("AWS_S3_REGION", "eu-north-1")
     )
+    aws_ecr_login_uri: str = field(
+        default_factory=lambda: os.getenv("AWS_ECR_LOGIN_URI", "")
+    )
+    aws_ecr_repo_name: str = field(
+        default_factory=lambda: os.getenv("AWS_ECR_REPO_NAME", "")
+    )
 
 
 settings = Settings()

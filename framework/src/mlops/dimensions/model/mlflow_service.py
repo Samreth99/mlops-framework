@@ -11,6 +11,7 @@ warnings.filterwarnings(
     message="Saving scikit-learn models in the pickle or cloudpickle format",
     category=FutureWarning,
 )
+logging.getLogger("mlflow.sklearn").setLevel(logging.ERROR)
 
 import numpy as np
 from datetime import datetime, timezone

@@ -1286,6 +1286,17 @@
       "refreshCadence": null,
       "status": "active",
       "createdAt": "2026-03-07T23:33:50.833383+00:00"
+    },
+    "938b4b4d": {
+      "sourceId": "938b4b4d",
+      "name": "Breast Dataset",
+      "type": "s3",
+      "connectionRef": "mlops/breast-dataset",
+      "schemaRef": null,
+      "owner": "data-engineer",
+      "refreshCadence": null,
+      "status": "active",
+      "createdAt": "2026-03-08T00:01:22.309507+00:00"
     }
   },
   "ingestions": {
@@ -4330,6 +4341,32 @@
         "DVC tracking: success"
       ],
       "createdAt": "2026-03-07T23:33:59.153761+00:00"
+    },
+    "dab58396": {
+      "ingestionId": "dab58396",
+      "runId": "0ab25486",
+      "sourceId": "938b4b4d",
+      "sourceName": "Breast Dataset",
+      "connectionRef": "mlops/breast-dataset",
+      "mode": "batch",
+      "window": "2024-01-01/2024-12-31",
+      "params": {
+        "secretRef": "mlops/breast-dataset"
+      },
+      "ticketId": null,
+      "status": "completed",
+      "progress": 100.0,
+      "outputRefs": [
+        "s3://mlops-storage/data-storage/breast_dataset.csv"
+      ],
+      "outputDatasetVersionId": null,
+      "s3Ref": "s3://mlops-storage/data-storage/breast_dataset.csv",
+      "localRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_dataset.csv",
+      "logs": [
+        "Downloaded from S3 via secret 'mlops/breast-dataset': s3://mlops-storage/data-storage/breast_dataset.csv \u2192 D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_dataset.csv",
+        "DVC tracking: success"
+      ],
+      "createdAt": "2026-03-08T00:01:30.607775+00:00"
     }
   },
   "datasets": {
@@ -7464,6 +7501,33 @@
       "description": "Labeled version of 5cd53bcb/v1",
       "schemaRef": null,
       "createdAt": "2026-03-07T23:34:11.103247+00:00"
+    },
+    "314bc5b7": {
+      "datasetId": "314bc5b7",
+      "name": "breast-cancer-dataset",
+      "owner": "data-engineer",
+      "domain": "medical",
+      "description": "Breast cancer WDBC dataset",
+      "schemaRef": null,
+      "createdAt": "2026-03-08T00:01:30.637632+00:00"
+    },
+    "6c9e4776": {
+      "datasetId": "6c9e4776",
+      "name": "preprocessed_314bc5b7/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Auto-created by /data/preprocess from version 314bc5b7/v1",
+      "schemaRef": null,
+      "createdAt": "2026-03-08T00:01:36.825090+00:00"
+    },
+    "1c6d6ee6": {
+      "datasetId": "1c6d6ee6",
+      "name": "labeled_6c9e4776/v1",
+      "owner": null,
+      "domain": null,
+      "description": "Labeled version of 6c9e4776/v1",
+      "schemaRef": null,
+      "createdAt": "2026-03-08T00:01:42.821059+00:00"
     }
   },
   "dataset_versions": {
@@ -16285,6 +16349,82 @@
         "createdBy": "api",
         "createdAt": "2026-03-07T23:34:16.532131+00:00"
       }
+    },
+    "314bc5b7": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "314bc5b7",
+        "storageRef": "s3://mlops-storage/datasets/314bc5b7/versions/v1/breast_dataset.csv",
+        "localRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\breast_dataset.csv",
+        "trainStorageRef": null,
+        "testStorageRef": null,
+        "trainLocalRef": null,
+        "testLocalRef": null,
+        "digest": "sha256:35392949f74a38890caad005922eae88630898128f92a80648b1c0ebfbf3a5fa",
+        "schemaRef": null,
+        "lineage": {},
+        "stats": {},
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-03-08T00:01:36.759903+00:00"
+      }
+    },
+    "6c9e4776": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "6c9e4776",
+        "storageRef": "s3://mlops-storage/datasets/6c9e4776/versions/v1/preprocess_6c9e4776_5153e36f.csv",
+        "localRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\preprocess_6c9e4776_5153e36f.csv",
+        "trainStorageRef": null,
+        "testStorageRef": null,
+        "trainLocalRef": null,
+        "testLocalRef": null,
+        "digest": "sha256:93a3e1efe4bf86f5308e3575f8e481fc8b4d9a6a7612b5964bc6e9619604f68a",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "314bc5b7/v1"
+          ],
+          "transformRef": null
+        },
+        "stats": {
+          "rows": 683,
+          "columns": 11
+        },
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-03-08T00:01:42.155524+00:00"
+      }
+    },
+    "1c6d6ee6": {
+      "v1": {
+        "versionId": "v1",
+        "datasetId": "1c6d6ee6",
+        "storageRef": "s3://mlops-storage/datasets/1c6d6ee6/versions/v1/label_1c6d6ee6_5fd333b9.csv",
+        "localRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\label_1c6d6ee6_5fd333b9.csv",
+        "trainStorageRef": null,
+        "testStorageRef": null,
+        "trainLocalRef": null,
+        "testLocalRef": null,
+        "digest": "sha256:93a3e1efe4bf86f5308e3575f8e481fc8b4d9a6a7612b5964bc6e9619604f68a",
+        "schemaRef": null,
+        "lineage": {
+          "parentVersions": [
+            "6c9e4776/v1"
+          ],
+          "toolingRef": null
+        },
+        "stats": {
+          "rows": 683,
+          "labeled_column": "Class"
+        },
+        "ticketId": null,
+        "dvcTracked": true,
+        "createdBy": "api",
+        "createdAt": "2026-03-08T00:01:48.247252+00:00"
+      }
     }
   },
   "features": {
@@ -17207,6 +17347,14 @@
       "entitySchema": "patient_id: str",
       "description": "Core numeric features for breast cancer classification",
       "createdAt": "2026-03-07T23:34:16.603178+00:00"
+    },
+    "e907ce31": {
+      "featureSetId": "e907ce31",
+      "name": "breast_cancer_features",
+      "owner": "data-engineer",
+      "entitySchema": "patient_id: str",
+      "description": "Core numeric features for breast cancer classification",
+      "createdAt": "2026-03-08T00:01:48.318429+00:00"
     }
   },
   "feature_versions": {
@@ -19623,6 +19771,27 @@
           "sample_id"
         ],
         "createdAt": "2026-03-07T23:34:22.770271+00:00"
+      }
+    },
+    "e907ce31": {
+      "fv1": {
+        "versionId": "fv1",
+        "featureSetId": "e907ce31",
+        "storageRef": "s3://mlops-storage/features/e907ce31/versions/fv1/engineer_77df6adb_43bd7830.csv",
+        "localRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\engineer_77df6adb_43bd7830.csv",
+        "trainLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\e907ce31_fv1_train.csv",
+        "testLocalRef": "D:\\IMT\\Lesson\\S10\\(2IA 10.3) - Etude technique\\mlops-framework\\framework\\src\\mlops\\dimensions\\data\\data-storage\\e907ce31_fv1_test.csv",
+        "trainStorageRef": "s3://mlops-storage/features/e907ce31/versions/fv1/train/e907ce31_fv1_train.csv",
+        "testStorageRef": "s3://mlops-storage/features/e907ce31/versions/fv1/test/e907ce31_fv1_test.csv",
+        "schemaRef": null,
+        "computedFrom": "1c6d6ee6/v1",
+        "digest": "sha256:a1e2481d46171fcde4c68cfc86db1fd022e43ce1eb0ac77887b109140530a0a0",
+        "ticketId": null,
+        "dvcTracked": true,
+        "entityKeys": [
+          "sample_id"
+        ],
+        "createdAt": "2026-03-08T00:01:54.445891+00:00"
       }
     }
   }

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+import logging
 from .core.styles import mount_custom_docs
 
 from .dimensions.plan.router import router as plan_router
