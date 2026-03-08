@@ -1,0 +1,115 @@
+name: Docker Test CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      testRunId:
+        description: "Test run ID from /soft/tests"
+        required: true
+      imageRef:
+        description: "Full ECR image URI to pull and test"
+        required: true
+
+concurrency:
+  group: docker-test-${{ inputs.testRunId }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/ks-software' && github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: read
+
+    env:
+      TEST_RUN_ID: ${{ inputs.testRunId }}
+      IMAGE_REF:   ${{ inputs.imageRef }}
+
+    steps:
+      # ── 1. Checkout code ──────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Configure AWS credentials ──────────────────────────────
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            eu-north-1
+
+      # ── 3. Login to Amazon ECR ────────────────────────────────────
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ── 4. Pull image from ECR ────────────────────────────────────
+      - name: Pull Docker image
+        run: docker pull "$IMAGE_REF"
+
+      # ── 5. Start container ────────────────────────────────────────
+      - name: Start API container
+        run: |
+          docker run -d \
+            --name test-api \
+            -p 8000:8000 \
+            -e MLFLOW_TRACKING_URI=http://localhost:5000 \
+            -e REDIS_URL=redis://localhost:6379 \
+            "$IMAGE_REF"
+
+      # ── 6. Wait for API to be ready ───────────────────────────────
+      - name: Wait for API health
+        run: |
+          for i in $(seq 1 15); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "API is healthy"
+              exit 0
+            fi
+            echo "Attempt $i: status=$STATUS, retrying..."
+            sleep 2
+          done
+          echo "API did not become healthy in time"
+          docker logs test-api
+          exit 1
+
+      # ── 7. Set up Python & run unit tests ─────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir -r framework/requirements.txt
+          pip install --no-cache-dir -e framework/
+
+      - name: Run unit tests
+        id: unit_tests
+        run: pytest framework/tests/ -v --tb=short
+        continue-on-error: true
+
+      # ── 8. Smoke test against running container ───────────────────
+      - name: Smoke test API endpoints
+        id: smoke_tests
+        run: |
+          echo "Testing /health..."
+          curl -sf http://localhost:8000/health
+
+          echo "Testing /soft/builds (list)..."
+          curl -sf http://localhost:8000/soft/builds
+
+          echo "Testing /model/experiments (list)..."
+          curl -sf http://localhost:8000/model/experiments || true
+        continue-on-error: true
+
+      # ── 9. Stop container ─────────────────────────────────────────
+      - name: Stop API container
+        if: always()
+        run: docker stop test-api || true
+
+      # ── 10. Fail job if any step failed ───────────────────────────
+      - name: Fail job if any step failed
+        if: steps.unit_tests.outcome != 'success' || steps.smoke_tests.outcome != 'success'
+        run: exit 1

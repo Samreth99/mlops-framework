@@ -8,6 +8,7 @@ Software – Test Management endpoints.
 """
 from __future__ import annotations
 
+import logging
 from typing import List, Optional
 
 import httpx
@@ -25,13 +26,7 @@ from ..schemas import (
 from .. import software_service as svc
 
 
-# ─────────────────────────────────────────────
-# testSuiteRef → workflow filename map
-# Add new suites here as you create them
-# ─────────────────────────────────────────────
-SUITE_TO_WORKFLOW = {
-    "tests/model-suite.yaml": "238673616",
-}
+TEST_WORKFLOW_FILE = "docker-test-ci.yml"
 
 
 class CICallbackRequest(BaseModel):
@@ -41,58 +36,136 @@ class CICallbackRequest(BaseModel):
     coverageRef: Optional[str] = None
 
 
-def _dispatch_github_actions(
+def _dispatch_github_test(
     test_run_id: str,
-    test_suite_ref: str,
-    image_ref: Optional[str] = None,
+    image_ref: str,
 ) -> None:
     """
-    Auto-trigger GitHub Actions via workflow_dispatch on ks-software branch.
-    Runs as a background task — does not block the API response.
-    Passes imageRef so the workflow can start the API as a Docker container.
-    Marks the test run as FAILED if GitHub is not configured or dispatch fails.
+    Dispatch the Docker test workflow on GitHub Actions as a background task.
+    After dispatch, polls GitHub API to find the workflow run_id and stores it.
+    No callback/ngrok required — status is polled from GitHub API on demand.
     """
-    import logging
+    import time
 
-    workflow_file = SUITE_TO_WORKFLOW.get(test_suite_ref)
-    token         = settings.github_token
-    owner         = settings.github_repo_owner
-    repo          = settings.github_repo_name
-    public_url    = settings.public_api_url
+    token = settings.github_token
+    owner = settings.github_repo_owner
+    repo  = settings.github_repo_name
 
-    if not all([workflow_file, token, owner, repo, public_url]):
-        svc.update_test_run(test_run_id, status="FAILED", passed=False)
+    if not all([token, owner, repo, image_ref]):
+        svc.update_test_run(
+            test_run_id,
+            status="FAILED",
+            passed=False,
+            report_ref=None,
+        )
         return
 
-    callback_url = f"{public_url}/soft/tests/{test_run_id}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept":        "application/vnd.github.v3+json",
+    }
 
     try:
         resp = httpx.post(
-            f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_file}/dispatches",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept":        "application/vnd.github.v3+json",
-            },
+            f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{TEST_WORKFLOW_FILE}/dispatches",
+            headers=headers,
             json={
                 "ref": "ks-software",
                 "inputs": {
-                    "testRunId":   test_run_id,
-                    "callbackUrl": callback_url,
-                    "apiBaseUrl":  public_url,
-                    "imageRef":    image_ref or "",
+                    "testRunId": test_run_id,
+                    "imageRef":  image_ref,
                 },
             },
             timeout=10.0,
         )
         if resp.status_code != 204:
-            logging.error(
-                "[CI Dispatch] GitHub returned %s: %s",
-                resp.status_code, resp.text,
-            )
+            logging.error("[Test Dispatch] GitHub returned %s: %s", resp.status_code, resp.text)
             svc.update_test_run(test_run_id, status="FAILED", passed=False)
+            return
+
+        # Poll until GitHub creates the run (up to 30s)
+        run_id = None
+        for _ in range(10):
+            time.sleep(3)
+            runs_resp = httpx.get(
+                f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{TEST_WORKFLOW_FILE}/runs",
+                headers=headers,
+                params={"event": "workflow_dispatch", "per_page": 5},
+                timeout=10.0,
+            )
+            if runs_resp.status_code == 200:
+                runs = runs_resp.json().get("workflow_runs", [])
+                for run in runs:
+                    if run.get("name") or True:
+                        run_id = run["id"]
+                        break
+            if run_id:
+                break
+
+        # Store run_id for polling
+        test_run = svc.get_test_run(test_run_id)
+        if test_run is not None:
+            test_run["githubRunId"] = run_id
+            test_run["logsRef"] = (
+                f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
+                if run_id else None
+            )
+
     except Exception as exc:
-        logging.error("[CI Dispatch] Exception: %s", exc)
+        logging.error("[Test Dispatch] Exception: %s", exc)
         svc.update_test_run(test_run_id, status="FAILED", passed=False)
+
+
+def _sync_test_from_github(test_run_id: str) -> None:
+    """Poll GitHub Actions API and sync test run status if run is complete."""
+    token = settings.github_token
+    owner = settings.github_repo_owner
+    repo  = settings.github_repo_name
+
+    test_run = svc.get_test_run(test_run_id)
+    if not test_run or not test_run.get("githubRunId"):
+        return
+
+    run_id = test_run["githubRunId"]
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept":        "application/vnd.github.v3+json",
+    }
+
+    try:
+        resp = httpx.get(
+            f"https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}",
+            headers=headers,
+            timeout=10.0,
+        )
+        if resp.status_code != 200:
+            return
+
+        run = resp.json()
+        gh_status     = run.get("status")     # queued | in_progress | completed
+        gh_conclusion = run.get("conclusion") # success | failure | cancelled | None
+
+        if gh_status != "completed":
+            test_run["status"] = "RUNNING"
+            return
+
+        logs_ref = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
+        if gh_conclusion == "success":
+            svc.update_test_run(
+                test_run_id,
+                status="PASSED",
+                passed=True,
+                report_ref=logs_ref,
+            )
+        else:
+            svc.update_test_run(
+                test_run_id,
+                status="FAILED",
+                passed=False,
+                report_ref=logs_ref,
+            )
+    except Exception as exc:
+        logging.error("[Test Sync] Exception: %s", exc)
 
 
 router = APIRouter()
@@ -102,12 +175,14 @@ router = APIRouter()
 # TESTS
 # ─────────────────────────────────────────────
 @router.post("/tests", response_model=TestRunResponse,
-             summary="Trigger a test execution (unit/integration/e2e)")
+             summary="Trigger a test execution against a Docker image from ECR")
 def trigger_test(req: TestTriggerRequest, background_tasks: BackgroundTasks):
     """
-    Queue a test run against a package or build.
+    Queue a test run against a build's Docker image pulled from ECR.
+    Dispatches `docker-test-ci.yml` which pulls the image, starts the container,
+    runs unit tests and smoke tests, then the status is polled from GitHub API.
 
-    **API spec inputs:** packageId|buildId, testSuiteRef, envRef?, ticketId
+    **API spec inputs:** buildId, testSuiteRef, ticketId
     **Returns:** testRunId, queued status
     """
     make_log(
@@ -124,6 +199,23 @@ def trigger_test(req: TestTriggerRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail={
             "error": {"code": "missing_test_target", "message": "Provide either packageId or buildId"}
         })
+
+    # Resolve image ref from the linked build
+    image_ref: Optional[str] = None
+    if req.buildId:
+        build = svc.get_build(req.buildId)
+        if build:
+            image_ref = build.get("environment", {}).get("imageRef")
+    if not image_ref and req.packageId:
+        pkg = svc.get_package(req.packageId)
+        if pkg:
+            image_ref = pkg.get("storageRef")
+
+    if not image_ref:
+        raise HTTPException(status_code=400, detail={
+            "error": {"code": "missing_image_ref", "message": "No imageRef found for the given buildId/packageId. Ensure the build is BUILT first."}
+        })
+
     try:
         result = svc.trigger_test(
             test_suite_ref=req.testSuiteRef,
@@ -132,17 +224,9 @@ def trigger_test(req: TestTriggerRequest, background_tasks: BackgroundTasks):
             build_id=req.buildId,
             env_ref=req.envRef,
         )
-        # Resolve the Docker image ref from the linked package's storageRef
-        image_ref: Optional[str] = None
-        pkg_id = result.get("packageId") or req.packageId
-        if pkg_id:
-            pkg = svc.get_package(pkg_id)
-            if pkg:
-                image_ref = pkg.get("storageRef")
         background_tasks.add_task(
-            _dispatch_github_actions,
+            _dispatch_github_test,
             result["testRunId"],
-            req.testSuiteRef,
             image_ref,
         )
         return TestRunResponse(**result)
@@ -158,9 +242,6 @@ def list_tests(
     packageId: Optional[str] = Query(None, description="Filter by package ID"),
     buildId: Optional[str] = Query(None, description="Filter by build ID"),
 ):
-    """
-    List all test run records, optionally filtered by packageId or buildId.
-    """
     make_log(
         area="Soft",
         component="Test Management",
@@ -182,10 +263,10 @@ def list_tests(
             summary="Test results summary and evidence pointers")
 def get_test_run(testRunId: str):
     """
-    Retrieve pass/fail result, coverage reference, quality metric refs, and report ref.
+    Poll the current test run state. Syncs from GitHub Actions API if still in progress.
 
     **API spec inputs:** none
-    **Returns:** pass/fail, coverage/quality metric refs, report ref
+    **Returns:** pass/fail, logs ref, report ref
     """
     make_log(
         area="Soft",
@@ -193,6 +274,11 @@ def get_test_run(testRunId: str):
         endpoint=f"/soft/tests/{testRunId}",
         meta={"testRunId": testRunId},
     )
+    # Sync from GitHub Actions if still in progress
+    run = svc.get_test_run(testRunId)
+    if run and run.get("status") in ("QUEUED", "RUNNING"):
+        _sync_test_from_github(testRunId)
+
     run = svc.get_test_run(testRunId)
     if run is None:
         raise HTTPException(status_code=404, detail={
@@ -205,12 +291,7 @@ def get_test_run(testRunId: str):
               summary="CI callback: update real test result from GitHub Actions")
 def ci_callback(testRunId: str, req: CICallbackRequest):
     """
-    Called by GitHub Actions at the end of a real CI run.
-
-    GitHub Actions sends:
-      status    : PASSED | FAILED
-      passed    : true | false
-      reportRef : URL to test report artifact
+    Called by GitHub Actions at the end of a CI run (optional — polling is primary).
     """
     make_log(
         area="Soft",
