@@ -39,6 +39,7 @@ def training_result(experiment_id):
     """Run training once and share the result across tests."""
     response = client.post("/model/runs/execute-training", json={
         "experimentId": experiment_id,
+        "ticketId": "ci-test",
         "trainingConfig": {
             "n_estimators": 100,
             "criterion": "gini"
@@ -110,6 +111,7 @@ def test_evaluation_passes(training_result):
 
     response = client.post("/model/runs/execute-evaluation", json={
         "modelCandidateRef": artifact_ref,
+        "ticketId": "ci-test",
         "metrics": ["accuracy", "f1_macro", "precision_macro", "recall_macro"],
         "target_column": "Class"
     })
