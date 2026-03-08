@@ -6,9 +6,11 @@ on:
       testRunId:
         description: "Test run ID from /soft/tests"
         required: true
+        type: string
       imageRef:
         description: "Full ECR image URI to pull and test"
         required: true
+        type: string
 
 concurrency:
   group: docker-test-${{ github.run_id }}

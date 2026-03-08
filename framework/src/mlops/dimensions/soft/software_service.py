@@ -55,11 +55,9 @@ def _load_registry() -> Dict[str, Any]:
 
 
 def _save_registry(reg: Dict[str, Any]) -> None:
-    """Atomic write: write to .tmp then rename. Caller must hold _registry_lock."""
-    tmp = _REGISTRY_FILE.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
+    """Write registry directly to file. Caller must hold _registry_lock."""
+    with open(_REGISTRY_FILE, "w", encoding="utf-8") as f:
         json.dump(reg, f, indent=2, ensure_ascii=False)
-    tmp.replace(_REGISTRY_FILE)
 
 
 @contextmanager
