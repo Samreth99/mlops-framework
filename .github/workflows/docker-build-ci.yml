@@ -49,7 +49,7 @@ jobs:
 
       - name: Run unit tests
         id: unit_tests
-        run: pytest framework/tests/ -v --tb=short
+        run: pytest framework/tests/unit/ -v --tb=short
         continue-on-error: true
 
       # ── 3. Configure AWS credentials ──────────────────────────────

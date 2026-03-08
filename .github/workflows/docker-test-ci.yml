@@ -74,7 +74,7 @@ jobs:
           docker logs test-api
           exit 1
 
-      # ── 7. Set up Python & run unit tests ─────────────────────────
+      # ── 7. Set up Python & run tests ──────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -87,7 +87,14 @@ jobs:
 
       - name: Run unit tests
         id: unit_tests
-        run: pytest framework/tests/ -v --tb=short
+        run: pytest framework/tests/unit/ -v --tb=short
+        continue-on-error: true
+
+      - name: Run integration tests
+        id: integration_tests
+        run: pytest framework/tests/integration/ -v --tb=short
+        env:
+          API_BASE_URL: http://localhost:8000
         continue-on-error: true
 
       # ── 8. Smoke test against running container ───────────────────
@@ -111,5 +118,5 @@ jobs:
 
       # ── 10. Fail job if any step failed ───────────────────────────
       - name: Fail job if any step failed
-        if: steps.unit_tests.outcome != 'success' || steps.smoke_tests.outcome != 'success'
+        if: steps.unit_tests.outcome != 'success' || steps.integration_tests.outcome != 'success' || steps.smoke_tests.outcome != 'success'
         run: exit 1
