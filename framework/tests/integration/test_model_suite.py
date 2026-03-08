@@ -40,6 +40,7 @@ def training_result(experiment_id):
     response = client.post("/model/runs/execute-training", json={
         "experimentId": experiment_id,
         "ticketId": "ci-test",
+        "datasetVersion": "s3://mlops-storage/features/3de5ee41/versions/fv1/train/3de5ee41_fv1_train.csv",
         "trainingConfig": {
             "n_estimators": 100,
             "criterion": "gini"
@@ -112,6 +113,7 @@ def test_evaluation_passes(training_result):
     response = client.post("/model/runs/execute-evaluation", json={
         "modelCandidateRef": artifact_ref,
         "ticketId": "ci-test",
+        "evalDatasetVersion": "s3://mlops-storage/features/3de5ee41/versions/fv1/test/3de5ee41_fv1_test.csv",
         "metrics": ["accuracy", "f1_macro", "precision_macro", "recall_macro"],
         "target_column": "Class"
     })
