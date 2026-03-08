@@ -287,7 +287,57 @@ Model development and registry backed by **MLflow**.
 
 ### Software Dimension (`/soft`)
 
-CI/CD pipeline management — code commits, Docker builds, test runs, package artifacts, and releases. Build and test jobs are dispatched to **GitHub Actions**.
+CI/CD pipeline management — code commits, Docker builds, test runs, package artifacts, and releases. Build and test jobs are dispatched to **GitHub Actions** via `workflow_dispatch`. Status is polled back from the GitHub API on demand — no webhook/ngrok required.
+
+#### CI/CD Workflow Details
+
+Two GitHub Actions workflows are triggered automatically by the API:
+
+---
+
+**`docker-build-ci.yml` — Docker Build CI**
+
+Triggered by: `POST /soft/builds`
+
+Flow:
+1. API registers the build record and dispatches `docker-build-ci.yml` via GitHub Actions `workflow_dispatch` (inputs: `buildId`, `imageTag`)
+2. GitHub Actions builds `framework/Dockerfile`
+3. Runs **unit tests** inside the container
+4. Pushes the image to **AWS ECR** (`AWS_ECR_LOGIN_URI:imageTag`)
+5. Status is polled via `GET /soft/builds/{buildId}/status` → syncs directly from the GitHub Actions API
+
+Build states: `QUEUED` → `RUNNING` → `BUILT` / `FAILED`
+
+---
+
+**`docker-test-ci.yml` — Docker Test CI**
+
+Triggered by: `POST /soft/tests`
+
+Flow:
+1. API looks up the `imageRef` from the linked build (must be `BUILT`) and dispatches `docker-test-ci.yml` (inputs: `testRunId`, `imageRef`)
+2. GitHub Actions pulls the image from **AWS ECR**
+3. Spins up a **Docker Compose** environment with MLflow and Redis
+4. Runs **integration tests** against the live stack
+5. Status is polled via `GET /soft/tests/{testRunId}` → syncs directly from the GitHub Actions API
+
+Test states: `QUEUED` → `RUNNING` → `PASSED` / `FAILED`
+
+---
+
+**Typical call sequence:**
+
+```
+POST /soft/builds          → triggers docker-build-ci.yml
+GET  /soft/builds/{id}/status  → poll until BUILT
+
+POST /soft/tests           → triggers docker-test-ci.yml (pulls image from ECR)
+GET  /soft/tests/{id}      → poll until PASSED / FAILED
+```
+
+Required env vars for CI dispatch: `GH_DISPATCH_TOKEN`, `GH_REPO_OWNER`, `GH_REPO_NAME`, `AWS_ECR_LOGIN_URI`
+
+---
 
 #### Code Management
 
