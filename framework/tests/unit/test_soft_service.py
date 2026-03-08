@@ -6,12 +6,10 @@ from mlops.dimensions.soft import software_service as svc
 
 
 @pytest.fixture(autouse=True)
-def reset_store():
-    for key in svc._store:
-        if isinstance(svc._store[key], dict):
-            svc._store[key].clear()
-        else:
-            svc._store[key] = []
+def reset_store(tmp_path, monkeypatch):
+    # Point the registry file to a temp path so tests are isolated
+    registry_file = tmp_path / "soft_registry.json"
+    monkeypatch.setattr(svc, "_REGISTRY_FILE", registry_file)
     yield
 
 
