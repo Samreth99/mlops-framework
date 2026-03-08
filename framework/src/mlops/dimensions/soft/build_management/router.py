@@ -154,10 +154,8 @@ def _sync_build_from_github(build_id: str) -> None:
             return
 
         if gh_conclusion == "success":
-            # Fetch jobs to get image ref from workflow outputs (best-effort)
-            ecr_uri = settings.aws_s3_bucket  # fallback label
             image_tag = build.get("tag") or build.get("commitSha") or build_id
-            image_ref = f"{owner}/{repo}:{image_tag}"
+            image_ref = f"{settings.aws_ecr_login_uri}:{image_tag}"
 
             svc.update_build(
                 build_id,
