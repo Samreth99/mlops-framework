@@ -25,7 +25,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/ks-software' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+    if: github.ref == 'refs/heads/ks-software' && github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: read
@@ -56,7 +56,31 @@ jobs:
       - name: Pull Docker image from ECR
         run: docker pull "$IMAGE_REF"
 
-      # ── 5. Start full stack with docker compose ───────────────────
+      # ── 5. Create framework/.env for docker compose ──────────────
+      - name: Create framework/.env
+        run: |
+          cat > framework/.env <<EOF
+          MLFLOW_TRACKING_URI=http://mlflow:5000/
+          MLFLOW_ARTIFACT_ROOT=s3://mlops-storage/mlflow
+          MLFLOW_EXPERIMENT_NAME=Default
+          DEFAULT_DATASET_PATH=src/mlops/dimensions/data/data-storage/breast_train.csv
+          DEFAULT_TEST_DATASET_PATH=src/mlops/dimensions/data/data-storage/breast_test.csv
+          GH_DISPATCH_TOKEN=${{ secrets.GH_DISPATCH_TOKEN }}
+          GH_REPO_OWNER=Samreth99
+          GH_REPO_NAME=mlops-framework
+          PUBLIC_API_URL=
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ECR_LOGIN_URI=000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework
+          AWS_ECR_REPO_NAME=mlops/framework
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          REDIS_PASSWORD=
+          REDIS_DB=0
+          REDIS_FEATURE_TTL=0
+          EOF
+
+      # ── 6. Start full stack with docker compose ───────────────────
       # MLOPS_IMAGE is picked up by docker-compose.yml
       # so the api service uses the ECR image instead of building
       - name: Start full stack (redis + mlflow + api)
@@ -64,7 +88,7 @@ jobs:
         env:
           MLOPS_IMAGE: ${{ inputs.imageRef }}
 
-      # ── 6. Wait for API to be ready ───────────────────────────────
+      # ── 7. Wait for API to be ready ───────────────────────────────
       - name: Wait for API health
         run: |
           for i in $(seq 1 20); do
@@ -80,7 +104,7 @@ jobs:
           docker compose logs api
           exit 1
 
-      # ── 7. Set up Python & run tests ──────────────────────────────
+      # ── 8. Set up Python & run tests ──────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -103,7 +127,7 @@ jobs:
           API_BASE_URL: http://localhost:8000
         continue-on-error: true
 
-      # ── 8. Smoke test against running stack ───────────────────────
+      # ── 9. Smoke test against running stack ───────────────────────
       - name: Smoke test API endpoints
         id: smoke_tests
         run: |
@@ -117,12 +141,12 @@ jobs:
           curl -sf http://localhost:8000/model/experiments || true
         continue-on-error: true
 
-      # ── 9. Stop full stack ────────────────────────────────────────
+      # ── 10. Stop full stack ───────────────────────────────────────
       - name: Stop full stack
         if: always()
         run: docker compose down
 
-      # ── 10. Fail job if any step failed ───────────────────────────
+      # ── 11. Fail job if any step failed ───────────────────────────
       - name: Fail job if any step failed
         if: steps.unit_tests.outcome != 'success' || steps.integration_tests.outcome != 'success' || steps.smoke_tests.outcome != 'success'
         run: exit 1
