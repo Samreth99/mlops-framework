@@ -46,6 +46,7 @@ def _dispatch_github_build(
     No callback/ngrok required — status is polled from GitHub API on demand.
     """
     import time
+    from datetime import datetime, timezone
 
     token = settings.github_token
     owner = settings.github_repo_owner
@@ -67,6 +68,7 @@ def _dispatch_github_build(
     }
 
     try:
+        dispatch_time = datetime.now(timezone.utc)
         # Dispatch the workflow
         resp = httpx.post(
             f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{BUILD_WORKFLOW_FILE}/dispatches",
@@ -88,7 +90,7 @@ def _dispatch_github_build(
             )
             return
 
-        # Poll until GitHub creates the run (up to 30s)
+        # Poll until GitHub creates the newly dispatched run (up to 30s)
         run_id = None
         for _ in range(10):
             time.sleep(3)
@@ -101,9 +103,15 @@ def _dispatch_github_build(
             if runs_resp.status_code == 200:
                 runs = runs_resp.json().get("workflow_runs", [])
                 for run in runs:
-                    if run.get("name") or True:
-                        run_id = run["id"]
-                        break
+                    try:
+                        run_created = datetime.fromisoformat(
+                            run.get("created_at", "").replace("Z", "+00:00")
+                        )
+                        if run_created >= dispatch_time:
+                            run_id = run["id"]
+                            break
+                    except Exception:
+                        pass
             if run_id:
                 break
 

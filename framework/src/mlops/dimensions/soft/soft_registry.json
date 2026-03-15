@@ -19,7 +19,12 @@
       "author": "alice@org.com",
       "ticketId": "ticket-001",
       "buildRefs": [
-        "build-32e254a9a5c6"
+        "build-32e254a9a5c6",
+        "build-6e25f235d300",
+        "build-65c3a2ded030",
+        "build-30a4a8afc107",
+        "build-24ca0016a9d0",
+        "build-3a5ff433d932"
       ],
       "created_at": "2026-03-08T20:11:58.351115+00:00"
     }
@@ -53,6 +58,138 @@
       "started_at": null,
       "finished_at": "2026-03-08T20:16:58.902890+00:00",
       "githubRunId": 22828936866
+    },
+    "build-6e25f235d300": {
+      "buildId": "build-6e25f235d300",
+      "repoId": "repo-9e79c1a266f6",
+      "commitSha": "abc123def456789abcdef0123456789abcdef01",
+      "tag": null,
+      "buildConfigRef": "framework/Dockerfile",
+      "ticketId": "ticket-001",
+      "status": "QUEUED",
+      "inputs": {
+        "repoId": "repo-9e79c1a266f6",
+        "commitSha": "abc123def456789abcdef0123456789abcdef01",
+        "tag": null,
+        "buildConfigRef": "framework/Dockerfile"
+      },
+      "environment": {},
+      "packageRefs": [],
+      "logsRef": "urn:mlops-ci-log:23110973921",
+      "errorSummary": null,
+      "artifactRefs": [],
+      "queued_at": "2026-03-15T13:06:05.857500+00:00",
+      "started_at": null,
+      "finished_at": null,
+      "githubRunId": 23110973921
+    },
+    "build-65c3a2ded030": {
+      "buildId": "build-65c3a2ded030",
+      "repoId": "repo-9e79c1a266f6",
+      "commitSha": "abc123def456789abcdef0123456789abcdef01",
+      "tag": null,
+      "buildConfigRef": "framework/Dockerfile",
+      "ticketId": "ticket-001",
+      "status": "QUEUED",
+      "inputs": {
+        "repoId": "repo-9e79c1a266f6",
+        "commitSha": "abc123def456789abcdef0123456789abcdef01",
+        "tag": null,
+        "buildConfigRef": "framework/Dockerfile"
+      },
+      "environment": {},
+      "packageRefs": [],
+      "logsRef": "urn:mlops-ci-log:23111053368",
+      "errorSummary": null,
+      "artifactRefs": [],
+      "queued_at": "2026-03-15T13:11:04.342452+00:00",
+      "started_at": null,
+      "finished_at": null,
+      "githubRunId": 23111053368
+    },
+    "build-30a4a8afc107": {
+      "buildId": "build-30a4a8afc107",
+      "repoId": "repo-9e79c1a266f6",
+      "commitSha": "abc123def456789abcdef0123456789abcdef01",
+      "tag": null,
+      "buildConfigRef": "framework/Dockerfile",
+      "ticketId": "ticket-001",
+      "status": "BUILT",
+      "inputs": {
+        "repoId": "repo-9e79c1a266f6",
+        "commitSha": "abc123def456789abcdef0123456789abcdef01",
+        "tag": null,
+        "buildConfigRef": "framework/Dockerfile"
+      },
+      "environment": {
+        "imageRef": "000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework:abc123def456789abcdef0123456789abcdef01"
+      },
+      "packageRefs": [],
+      "logsRef": "urn:mlops-ci-log:23111114434",
+      "errorSummary": null,
+      "artifactRefs": [
+        "000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework:abc123def456789abcdef0123456789abcdef01"
+      ],
+      "queued_at": "2026-03-15T13:14:52.208111+00:00",
+      "started_at": null,
+      "finished_at": "2026-03-15T13:20:43.530869+00:00",
+      "githubRunId": 23111114434
+    },
+    "build-24ca0016a9d0": {
+      "buildId": "build-24ca0016a9d0",
+      "repoId": "repo-9e79c1a266f6",
+      "commitSha": "abc123def456789abcdef0123456789abcdef01",
+      "tag": null,
+      "buildConfigRef": "framework/Dockerfile",
+      "ticketId": "ticket-001",
+      "status": "BUILT",
+      "inputs": {
+        "repoId": "repo-9e79c1a266f6",
+        "commitSha": "abc123def456789abcdef0123456789abcdef01",
+        "tag": null,
+        "buildConfigRef": "framework/Dockerfile"
+      },
+      "environment": {
+        "imageRef": "000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework:abc123def456789abcdef0123456789abcdef01"
+      },
+      "packageRefs": [],
+      "logsRef": "urn:mlops-ci-log:23111114434",
+      "errorSummary": null,
+      "artifactRefs": [
+        "000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework:abc123def456789abcdef0123456789abcdef01"
+      ],
+      "queued_at": "2026-03-15T14:09:35.298416+00:00",
+      "started_at": null,
+      "finished_at": "2026-03-15T14:09:40.902166+00:00",
+      "githubRunId": 23111114434
+    },
+    "build-3a5ff433d932": {
+      "buildId": "build-3a5ff433d932",
+      "repoId": "repo-9e79c1a266f6",
+      "commitSha": "abc123def456789abcdef0123456789abcdef01",
+      "tag": null,
+      "buildConfigRef": "framework/Dockerfile",
+      "ticketId": "ticket-001",
+      "status": "BUILT",
+      "inputs": {
+        "repoId": "repo-9e79c1a266f6",
+        "commitSha": "abc123def456789abcdef0123456789abcdef01",
+        "tag": null,
+        "buildConfigRef": "framework/Dockerfile"
+      },
+      "environment": {
+        "imageRef": "000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework:abc123def456789abcdef0123456789abcdef01"
+      },
+      "packageRefs": [],
+      "logsRef": "urn:mlops-ci-log:23112029880",
+      "errorSummary": null,
+      "artifactRefs": [
+        "000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework:abc123def456789abcdef0123456789abcdef01"
+      ],
+      "queued_at": "2026-03-15T14:10:36.643627+00:00",
+      "started_at": null,
+      "finished_at": "2026-03-15T14:14:47.412387+00:00",
+      "githubRunId": 23112029880
     }
   },
   "packages": {},
@@ -139,6 +276,108 @@
       "queued_at": "2026-03-08T20:47:39.481310+00:00",
       "finished_at": "2026-03-08T20:51:13.339690+00:00",
       "githubRunId": 22829539324
+    },
+    "testrun-2438da01747f": {
+      "testRunId": "testrun-2438da01747f",
+      "packageId": null,
+      "buildId": "build-32e254a9a5c6",
+      "testSuiteRef": "tests/integration.yaml",
+      "envRef": null,
+      "ticketId": "ticket-001",
+      "status": "PASSED",
+      "passed": true,
+      "coverageRef": null,
+      "qualityMetricRefs": [],
+      "reportRef": "urn:mlops-ci-log:23109647302",
+      "logsRef": "urn:mlops-ci-log:23109647302",
+      "queued_at": "2026-03-15T11:42:08.325928+00:00",
+      "finished_at": "2026-03-15T11:46:32.400993+00:00",
+      "githubRunId": 23109647302
+    },
+    "testrun-36ba5d138979": {
+      "testRunId": "testrun-36ba5d138979",
+      "packageId": null,
+      "buildId": "build-30a4a8afc107",
+      "testSuiteRef": "tests/integration.yaml",
+      "envRef": null,
+      "ticketId": "ticket-001",
+      "status": "PASSED",
+      "passed": true,
+      "coverageRef": null,
+      "qualityMetricRefs": [],
+      "reportRef": "urn:mlops-ci-log:23109647302",
+      "logsRef": "urn:mlops-ci-log:23109647302",
+      "queued_at": "2026-03-15T13:20:43.603964+00:00",
+      "finished_at": "2026-03-15T13:20:48.926367+00:00",
+      "githubRunId": 23109647302
+    },
+    "testrun-e4507e591251": {
+      "testRunId": "testrun-e4507e591251",
+      "packageId": null,
+      "buildId": "build-32e254a9a5c6",
+      "testSuiteRef": "tests/integration.yaml",
+      "envRef": null,
+      "ticketId": "ticket-001",
+      "status": "QUEUED",
+      "passed": null,
+      "coverageRef": null,
+      "qualityMetricRefs": [],
+      "reportRef": null,
+      "logsRef": "urn:mlops-ci-log:23111792865",
+      "queued_at": "2026-03-15T13:55:16.869354+00:00",
+      "finished_at": null,
+      "githubRunId": 23111792865
+    },
+    "testrun-4c950434ec3c": {
+      "testRunId": "testrun-4c950434ec3c",
+      "packageId": null,
+      "buildId": "build-32e254a9a5c6",
+      "testSuiteRef": "tests/integration.yaml",
+      "envRef": null,
+      "ticketId": "ticket-001",
+      "status": "PASSED",
+      "passed": true,
+      "coverageRef": null,
+      "qualityMetricRefs": [],
+      "reportRef": "urn:mlops-ci-log:23111952485",
+      "logsRef": "urn:mlops-ci-log:23111952485",
+      "queued_at": "2026-03-15T14:04:56.368444+00:00",
+      "finished_at": "2026-03-15T14:08:45.110628+00:00",
+      "githubRunId": 23111952485
+    },
+    "testrun-606b12bc864a": {
+      "testRunId": "testrun-606b12bc864a",
+      "packageId": null,
+      "buildId": "build-24ca0016a9d0",
+      "testSuiteRef": "tests/integration.yaml",
+      "envRef": null,
+      "ticketId": "ticket-001",
+      "status": "PASSED",
+      "passed": true,
+      "coverageRef": null,
+      "qualityMetricRefs": [],
+      "reportRef": "urn:mlops-ci-log:23111952485",
+      "logsRef": "urn:mlops-ci-log:23111952485",
+      "queued_at": "2026-03-15T14:09:40.930707+00:00",
+      "finished_at": "2026-03-15T14:09:46.245120+00:00",
+      "githubRunId": 23111952485
+    },
+    "testrun-4bbdd5ebb8f8": {
+      "testRunId": "testrun-4bbdd5ebb8f8",
+      "packageId": null,
+      "buildId": "build-3a5ff433d932",
+      "testSuiteRef": "tests/integration.yaml",
+      "envRef": null,
+      "ticketId": "ticket-001",
+      "status": "PASSED",
+      "passed": true,
+      "coverageRef": null,
+      "qualityMetricRefs": [],
+      "reportRef": "urn:mlops-ci-log:23112121990",
+      "logsRef": "urn:mlops-ci-log:23112121990",
+      "queued_at": "2026-03-15T14:14:47.447693+00:00",
+      "finished_at": "2026-03-15T14:18:48.849542+00:00",
+      "githubRunId": 23112121990
     }
   },
   "releases": {}

@@ -46,6 +46,7 @@ def _dispatch_github_test(
     No callback/ngrok required — status is polled from GitHub API on demand.
     """
     import time
+    from datetime import datetime, timezone
 
     token = settings.github_token
     owner = settings.github_repo_owner
@@ -66,6 +67,7 @@ def _dispatch_github_test(
     }
 
     try:
+        dispatch_time = datetime.now(timezone.utc)
         resp = httpx.post(
             f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{TEST_WORKFLOW_FILE}/dispatches",
             headers=headers,
@@ -83,7 +85,7 @@ def _dispatch_github_test(
             svc.update_test_run(test_run_id, status="FAILED", passed=False)
             return
 
-        # Poll until GitHub creates the run (up to 30s)
+        # Poll until GitHub creates the newly dispatched run (up to 30s)
         run_id = None
         for _ in range(10):
             time.sleep(3)
@@ -96,9 +98,15 @@ def _dispatch_github_test(
             if runs_resp.status_code == 200:
                 runs = runs_resp.json().get("workflow_runs", [])
                 for run in runs:
-                    if run.get("name") or True:
-                        run_id = run["id"]
-                        break
+                    try:
+                        run_created = datetime.fromisoformat(
+                            run.get("created_at", "").replace("Z", "+00:00")
+                        )
+                        if run_created >= dispatch_time:
+                            run_id = run["id"]
+                            break
+                    except Exception:
+                        pass
             if run_id:
                 break
 
@@ -144,7 +152,7 @@ def _sync_test_from_github(test_run_id: str) -> None:
         gh_conclusion = run.get("conclusion") # success | failure | cancelled | None
 
         if gh_status != "completed":
-            test_run["status"] = "RUNNING"
+            svc.update_test_run(test_run_id, status="RUNNING")
             return
 
         logs_ref = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
