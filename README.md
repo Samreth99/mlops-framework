@@ -1,5 +1,15 @@
 # MLOps Framework
 
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white)
+![MLflow](https://img.shields.io/badge/MLflow-3.10%2B-0194E2?logo=mlflow&logoColor=white)
+![DVC](https://img.shields.io/badge/DVC-3.0%2B-13ADC7?logo=dvc&logoColor=white)
+![AWS S3](https://img.shields.io/badge/AWS%20S3-Storage-FF9900?logo=amazonaws&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-5.0%2B-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![Camunda](https://img.shields.io/badge/Camunda-7-FC5D0D)
+
 A RESTful MLOps framework built with **FastAPI** that covers the full machine learning lifecycle — from project planning and data ingestion to model training, software packaging, and workflow orchestration via BPMN.
 
 ---
