@@ -506,7 +506,6 @@ docker run -d --name camunda7 -p 8080:8080 camunda/camunda-bpm-platform:tomcat-7
 2. Provide the required variables (e.g. `projectId`, `experimentName`, `datasetName`, `owner`)
 3. Click **Run**
 
-
 ### BPMN Process Overview
 
 The `mlops.bpmn` process (`MPO — MLOps Process Orchestrator`) coordinates all six dimensions via message events:
