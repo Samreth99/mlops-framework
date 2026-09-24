@@ -1,9 +1,5 @@
 README.md
 pyproject.toml
-src/mlops_component_framework.egg-info/PKG-INFO
-src/mlops_component_framework.egg-info/SOURCES.txt
-src/mlops_component_framework.egg-info/dependency_links.txt
-src/mlops_component_framework.egg-info/top_level.txt
 src/mlops/__init__.py
 src/mlops/main.py
 src/mlops/config/__init__.py
@@ -52,9 +48,15 @@ src/mlops/dimensions/orchestrator/runs/router.py
 src/mlops/dimensions/orchestrator/tickets/__init__.py
 src/mlops/dimensions/orchestrator/tickets/router.py
 src/mlops/dimensions/plan/__init__.py
+src/mlops/dimensions/plan/plan_service.py
 src/mlops/dimensions/plan/router.py
+src/mlops/dimensions/plan/schemas.py
 src/mlops/dimensions/plan/project_management/__init__.py
 src/mlops/dimensions/plan/project_management/router.py
+src/mlops/dimensions/plan/repository_management/__init__.py
+src/mlops/dimensions/plan/repository_management/router.py
+src/mlops/dimensions/plan/ticket_generation/__init__.py
+src/mlops/dimensions/plan/ticket_generation/router.py
 src/mlops/dimensions/soft/__init__.py
 src/mlops/dimensions/soft/router.py
 src/mlops/dimensions/soft/schemas.py
@@ -73,5 +75,7 @@ src/mlops/dimensions/soft/release_management/__init__.py
 src/mlops/dimensions/soft/release_management/router.py
 src/mlops/dimensions/soft/test_management/__init__.py
 src/mlops/dimensions/soft/test_management/router.py
-tests/test_orchestrator_service.py
-tests/test_soft_service.py
+src/mlops_component_framework.egg-info/PKG-INFO
+src/mlops_component_framework.egg-info/SOURCES.txt
+src/mlops_component_framework.egg-info/dependency_links.txt
+src/mlops_component_framework.egg-info/top_level.txt
