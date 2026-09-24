@@ -71,7 +71,7 @@ jobs:
           PUBLIC_API_URL=
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ECR_LOGIN_URI=000000000000.dkr.ecr.eu-north-1.amazonaws.com/mlops/framework
+          AWS_ECR_LOGIN_URI=${{ secrets.AWS_ECR_LOGIN_URI }}
           AWS_ECR_REPO_NAME=mlops/framework
           REDIS_HOST=redis
           REDIS_PORT=6379
